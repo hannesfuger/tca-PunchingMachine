@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_SafetyOut" Id="{0574a262-12d9-4d36-9471-9fe7a8a4fca2}">
+    <Declaration><![CDATA[TYPE ST_SafetyOut :
+STRUCT
+	bSAFE_NotHalt_Ok			: BOOL;
+	bErrAckSafety_General		: BOOL;
+	bErrAckSafety_Drive			: BOOL;
+	bRun_stop					: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

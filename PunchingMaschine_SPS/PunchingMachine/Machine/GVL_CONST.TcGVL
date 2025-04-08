@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <GVL Name="GVL_CONST" Id="{8afc040d-e284-44e5-a9f7-b3d4064830f3}" ParameterList="True">
+    <Declaration><![CDATA[VAR_GLOBAL CONSTANT	
+	/// GENERAL
+	nMaschineID						: INT := 1;
+	bActive 						: BOOL := TRUE;
+	sName 							: STRING := 'PunchingMachine';
+		
+	
+	/// VALUES, LIMITS          
+	MATS_COUNT						: UINT := 3; 			
+	MATRUNS_COUNT					: UINT := 7;
+	MATELEMENTS_COUNT				: UINT := 32;
+	MATHOLES_COUNT					: UINT := 65535;
+	
+	fEpsilon						: LREAL := 1E-2;	
+	tMaxTime						: TIME := T#71582M47S295MS;
+	iMaxIdxComponent				: INT := 255;
+	iMaxIdxEvents					: INT := eEvent_Max - 1;
+	
+			
+	/// COLORS
+	colBlack						: DWORD := 16#FF000000;
+	colWhite						: DWORD := 16#FFFFFFFF;
+	coldarkGrey						: DWORD := 16#FF505050;
+	collmidGrey						: DWORD := 16#FFE6E6E6;
+	collightGrey					: DWORD := 16#FFE6E6E6;
+	colYellow						: DWORD := 16#FFFFFF00;
+	colGreen						: DWORD := 16#FFADE204;
+	colOrange						: DWORD := 16#FFFFA500;
+	colBlue							: DWORD := 16#FF0000FF;
+	colRed							: DWORD := 16#FFFF0000;			
+	colSemiBlack					: DWORD := 16#7F000000;
+	colSemiWhite					: DWORD := 16#7FFFFFFF;
+	colSemidarkGrey					: DWORD := 16#7F505050;
+	colSemilmidGrey					: DWORD := 16#7FE6E6E6;
+	colSemilightGrey				: DWORD := 16#7FE6E6E6;
+	colSemiYellow					: DWORD := 16#7FFFFF00;
+	colSemiGreen					: DWORD := 16#7FADE204;
+	colSemiOrange					: DWORD := 16#7FFFA500;
+	colSemiBlue						: DWORD := 16#7F0000FF;
+	colSemiRed						: DWORD := 16#7FFF0000;	 
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

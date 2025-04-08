@@ -1,0 +1,28 @@
+{
+  "function": {
+    "name": "GetToolHolderStrings",
+    "displayName": "GetToolHolderStrings",
+    "visible": true,
+    "category": "",
+    "waitMode": "Synchronous",
+    "injectContextObject": false,
+    "description": "",
+    "returnValue": {
+      "type": "tchmi:project#/definitions/Array[0..] OF String"
+    },
+    "arguments": [
+      {
+        "name": "Mat",
+        "displayName": "Mat",
+        "type": "tchmi:server#/definitions/PLC1.ST_Mat",
+        "description": "This is an important Parameter which does... This text is used in a tooltip.",
+        "defaultValue": "",
+        "required": true,
+        "bindable": true,
+        "restParameter": false,
+        "asReference": false
+      }
+    ]
+  },
+  "$schema": "../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/FunctionDescription.Schema.json"
+}

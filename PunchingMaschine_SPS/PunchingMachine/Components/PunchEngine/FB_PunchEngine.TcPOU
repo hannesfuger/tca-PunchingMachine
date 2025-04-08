@@ -1,0 +1,1621 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_PunchEngine" Id="{e682466b-149b-46ce-b7ae-08478377e712}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PunchEngine EXTENDS FB_ComponentBase
+
+VAR PERSISTENT
+	nPunchCount					: UDINT;
+	fZeroOffset					: LREAL;
+END_VAR
+
+VAR	
+
+	// Sequencer
+	fbSeq						: FB_Sequence;
+	fbSeqOutletBelt				: FB_Sequence;
+	
+	fVelocity					: LREAL;
+	fAcceleration				: LREAL;
+	
+	fMovePosition				: LREAL;
+	bJogPos						: BOOL;
+	bJogNeg						: BOOL;
+	nPunchRemain				: UINT;
+	
+	bEnableOutletBelt			: BOOL;
+	tIntervallOutletbelt		: TIME;
+	tOutletbeltRuntime			: TIME;
+
+	// Watch Variables
+	bOutsideMat					: BOOL;
+	bPunchDone					: BOOL;
+	refObstacle					: REFERENCE TO BOOL;	
+	fTravelPosition				: LREAL;
+		
+	// Parameter
+	fPunchHeight				: REAL;
+	fPunchHeightAddon			: REAL := 3;
+	fPunchVelocity				: LREAL;
+	fPunchAcceleration			: LREAL;
+	
+	// Settings	
+	fRodLenght					: REAL;
+	fCrankThrow					: REAL;
+		
+	fMaxVelocity				: LREAL;
+	fMinVelocity				: LREAL;
+	fDefaultVelocity			: LREAL;
+	
+	fMaxAcceleration			: LREAL;
+	fMinAcceleration			: LREAL;
+	fDefaultAcceleration		: LREAL;
+	
+	fToleranceWindowMM			: LREAL := 0.5;
+	fToleranceWindowDeg			: LREAL := 5;
+	
+	// TorquwLimit
+	nTorqueLimit				: INT := 100;
+	nTorqueLimitPos				: INT := 100;
+	nTorqueLimitNeg				: INT := 10;
+		
+	// Axis
+	bEnable						: BOOL := TRUE;
+	refEnable					: REFERENCE TO BOOL;
+	fbPunchAxis					: FB_AxisDriver;
+	fbOutletbelt				: FB_DigitalOutput;
+
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//TODO: abtransportband!!!!!!]]></ST>
+    </Implementation>
+    <Folder Name="Commands" Id="{d6bb3a00-1415-4c43-b66e-df8e3494eb53}" />
+    <Folder Name="Properties" Id="{56accc04-24f2-4dea-b365-a22b8d6db586}" />
+    <Folder Name="Sequences" Id="{b084775c-833a-4b17-883c-4f349cbdff72}" />
+    <Folder Name="Setup" Id="{e0c74a68-eb11-4486-9516-e8a1d3814c09}" />
+    <Folder Name="Utilities" Id="{9d7fc255-154d-4fa9-b294-10f7b0134fce}" />
+    <Method Name="_Halt" Id="{46b7ffab-cde8-4d25-876c-bb43971fd702}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Halt : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Halt';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Punchaxis Halt', T#0S);
+
+		fbPunchAxis.posTorqueLimit := nTorqueLimit;
+		fbPunchAxis.negTorqueLimit := nTorqueLimit;
+		fbPunchAxis.Halt();		
+		fbSeq.NextStep(10);
+	
+		
+10	 :	fbSeq.StepDefinition('', T#0S);
+		IF fbPunchAxis.NotMoving THEN
+			fbSeq.Finish();
+		END_IF
+			
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Home" Id="{fb26bee7-3b57-4453-bd61-71ca1b82b4d3}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Home : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Home';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Reset Axis', T#0S);
+
+		fbSeq.NextStep(10);
+	
+	
+10	 :	fbSeq.StepDefinition('Set Zero-Position', T#0S);
+
+		fbSeq.NextStep(20);	
+
+		
+20	 :	fbSeq.StepDefinition('Move to Zero Postion', T#0S);
+
+		fbSeq.NextStep(30);	
+
+		
+30	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(40);
+
+		
+40	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(50);
+
+		
+50	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.Finish();
+
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Jog" Id="{51964e8c-d014-4198-aa12-828738c812d8}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Jog : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Jog';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Halt Axis', T#0S);
+		fbPunchAxis.posTorqueLimit := nTorqueLimit;
+		fbPunchAxis.negTorqueLimit := nTorqueLimit;
+		fbPunchAxis.Halt();
+		fbSeq.NextStep(10);
+	
+10	 :	fbSeq.StepDefinition('Jog Axis', T#0S);
+	
+		IF bJogPos OR bJogNeg THEN
+			fbPunchAxis.JogAcc(bJogPos , bJogNeg);
+		ELSE
+			fbSeq.NextStep(20);
+		END_IF		
+		
+20	 :	fbSeq.StepDefinition('Jog Finish', T#0S);
+		fbSeq.Finish();
+
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Move" Id="{1625301e-079c-494e-9324-189104430bc6}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Move : BOOL
+VAR
+	stMovModParameter			: ST_AxisMoveModParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Move';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Calculate nearest Position', T#0S);
+		fbPunchAxis.posTorqueLimit := nTorqueLimit;
+		fbPunchAxis.negTorqueLimit := nTorqueLimit;
+		
+		IF CrankAngle >= 180 THEN
+			stMovModParameter.eDirection := MC_Direction.MC_Positive_Direction;
+		ELSIF CrankAngle < 180 THEN
+			stMovModParameter.eDirection := MC_Direction.MC_Shortest_Way;
+		END_IF
+		
+		stMovModParameter.fPosition := PistonTravelToDeg1(fMovePosition);
+		stMovModParameter.fVelocity := fVelocity;
+		stMovModParameter.fAcceleration := fAcceleration;
+		fbPunchAxis.MoveModEx(stMovModParameter);	
+		fbSeq.NextStep(10);
+	
+	
+10	 :	fbSeq.StepDefinition('Position reached', T#0S);
+		IF fbPunchAxis.TargetReachedMod(fToleranceWindowDeg) THEN
+			fbSeq.Finish();
+		END_IF
+
+		
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_OutletBelt" Id="{be91ecec-c9dc-41c9-972e-60484545c7ed}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _OutletBelt : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE fbSeqOutletBelt.Step OF
+	
+	0	:	fbSeqOutletBelt.StepDefinition('OutletBelt waiting', T#0S);
+			fbSeqOutletBelt.NextStepTransition(10, bEnableOutletBelt);
+	
+	10	:	fbOutletbelt.SwitchState(TRUE);
+			fbSeqOutletBelt.NextStep(20);
+			
+	20	:	fbSeqOutletBelt.StepDefinition('OutletBelt running', T#0S);
+			fbSeqOutletBelt.NextStepDelay(tOutletbeltRuntime, 30);
+	
+	30	:   fbOutletbelt.SwitchState(FALSE);
+			bEnableOutletBelt := FALSE;
+			fbSeqOutletBelt.NextStep(40);
+
+	40	:	fbSeqOutletBelt.StepDefinition('OutletBelt resting', T#0S);
+			fbSeqOutletBelt.NextStepDelay(tintervallOutletbelt, 0);
+	
+
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Punch" Id="{45f639c3-1b9c-49eb-b565-d32ee9a03b04}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Punch : BOOL
+VAR
+	stMovModParameter			: ST_AxisMoveModParameter;
+	stMovAddParameter			: ST_AxisMoveAddParameter;
+	fPosition					: REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Punch';
+
+CASE fbSeq.Step OF
+	
+0	 :	fbSeq.StepDefinition('Move To Start-Point', T#0S);
+		IF fbPunchAxis.TargetReachedMod(fToleranceWindowDeg) THEN
+			fbSeq.NextStep(20);
+			RETURN;
+		END_IF
+		
+		IF CrankAngle >= 180 THEN
+			stMovModParameter.eDirection := MC_Direction.MC_Positive_Direction;
+		ELSIF CrankAngle < 180 THEN
+			stMovModParameter.eDirection := MC_Direction.MC_Shortest_Way;
+		END_IF
+		
+		fbPunchAxis.posTorqueLimit := nTorqueLimit;
+		fbPunchAxis.negTorqueLimit := nTorqueLimit;
+				
+		stMovModParameter.fPosition := 0;
+		stMovModParameter.fVelocity := fDefaultVelocity;
+		stMovModParameter.fAcceleration := fDefaultAcceleration;
+		stMovModParameter.eBufferMode := MC_BufferMode.MC_Aborting;
+		fbPunchAxis.MoveModEx(stMovModParameter);	
+		fbSeq.NextStep(10);	
+	
+10	 :	fbSeq.StepDefinition('Start-Point reached', T#0S);
+		IF fbPunchAxis.TargetReachedMod(fToleranceWindowDeg) THEN
+			fbSeq.NextStep(20);
+		END_IF
+
+20	 :	fbSeq.StepDefinition('Start Punch', T#0S);	
+		
+		fbPunchAxis.posTorqueLimit := nTorqueLimitPos;
+		fbPunchAxis.negTorqueLimit := nTorqueLimitNeg;
+
+		stMovAddParameter.fDistance := 360;
+		stMovAddParameter.fVelocity := fPunchVelocity;
+		stMovAddParameter.fAcceleration := fPunchAcceleration;
+		stMovAddParameter.eBufferMode := MC_BufferMode.MC_Aborting;
+		fbPunchAxis.MoveAddEx(stMovAddParameter);	
+		fbSeq.NextStep(30);	
+		
+30	 :	fbSeq.StepDefinition('Punching', T#0S);
+		IF InsideMat THEN
+			fbSeq.NextStep(40);	
+		END_IF			
+		
+40	 :	fbSeq.StepDefinition('Punching done', T#0S);
+		IF OutsideMat THEN
+			bPunchDone := TRUE;
+			nPunchRemain := nPunchRemain - 1;
+			nPunchCount := nPunchCount + 1;
+			fbSeq.NextStep(50);	
+		END_IF			
+
+50   :	fbSeq.StepDefinition('Check for Continue Punching', T#0S);  
+		IF nPunchRemain > 0 THEN
+			fbSeq.NextStep(20);	
+			RETURN;
+		END_IF
+		
+		fbPunchAxis.posTorqueLimit := nTorqueLimit;
+		fbPunchAxis.negTorqueLimit := nTorqueLimit;
+			
+		IF NOT fbPunchAxis.Moving THEN
+			fbSeq.Finish();			
+		END_IF	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="AmplifierTemp" Id="{66fcad12-d8a9-47ff-a126-33c5aeff7d18}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual amplifier temp. [°C]
+PROPERTY AmplifierTemp : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{6a9b1cf2-1b76-491a-8b30-217701ec6d1e}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual amplifier temp. [°C]
+AmplifierTemp := fbPunchAxis.AmplifierTemp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="BDC" Id="{c639a29e-3c63-4635-b8e8-d63b2de16559}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY BDC : BOOL]]></Declaration>
+      <Get Name="Get" Id="{eb777667-42be-49bf-956e-0ef2b9509db3}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[BDC := ABS(CrankAngle-180) < fToleranceWindowDeg;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="CrankAngle" Id="{210e3655-063d-446d-a518-26d5c639719c}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY CrankAngle : LREAL]]></Declaration>
+      <Get Name="Get" Id="{659526ba-5100-405e-8533-e3cbe4523c43}">
+        <Declaration><![CDATA[VAR
+	refAxis				: REFERENCE TO AXIS_REF;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[CrankAngle := fbPunchAxis.ActModuloPos;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="DegToPistonTravel" Id="{1518b1ad-90a5-4c71-b0d3-517f92c0adf2}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD DegToPistonTravel : LREAL
+VAR_INPUT
+	fAngle						: LREAL;
+END_VAR
+VAR
+	a							: LREAL;
+	b							: LREAL;
+	h							: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[a := fCrankThrow * SIN (DEG_TO_RAD(fAngle));
+b := fCrankThrow * COS (DEG_TO_RAD(fAngle));
+IF fRodLenght*fRodLenght-a*a < 0 THEN
+	RETURN;
+END_IF
+
+h := SQRT(fRodLenght*fRodLenght-a*a);
+
+DegToPistonTravel := fCrankThrow - fRodLenght + h - b;
+
+
+// MANFRED
+//a := fCrankThrow * SIN (DEG_TO_RAD(fAngle));
+//b := fCrankThrow * COS (DEG_TO_RAD(fAngle));
+//
+//h1 := fCrankThrow - b;
+//h2 := SQRT(fRodLenght*fRodLenght-a*a);
+//
+//DegToPistonTravel := 2 * fCrankThrow + fRodLenght - h1 - h2;
+
+
+
+/// http://www.3d-meier.de/tut16/Kurbel1/Seite1.html	
+//DegToPistonTravel := fRodLenght + fCrankThrow - (fCrankThrow * COS(DEG_TO_RAD(fAngle)) + fRodLenght * SQRT(1 - SQRT(fCrankThrow/fRodLenght) * SQRT(SIN(DEG_TO_RAD(fAngle)))));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{6df164eb-9ca2-4370-8952-3273f3d2fb54}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_PunchEngine;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Halt" Id="{9500f18b-67be-4594-b414-c1cfd5adde52}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Halt : E_OperationResult
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+Halt := E_OperationResult.eOperationResult_NOk;
+
+fbSeq.Start(E_PunchEngineCmd.cmdHalt);
+
+Halt := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Home" Id="{d030df31-c0c2-4ba4-9b1f-ef449cf794cc}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Home : E_OperationResult
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+Home := E_OperationResult.eOperationResult_NOk;
+
+fbSeq.Start(E_PunchEngineCmd.cmdHome);
+
+Home := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Homed" Id="{883803ae-a793-44ab-910f-90856ab6da6d}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Homed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ba607391-af9a-4abe-b900-50d73b3c5db8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Homed := fbPunchAxis.Homed;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Homing" Id="{ff6b3481-d658-4509-8e94-8657924d7e39}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Homing : BOOL]]></Declaration>
+      <Get Name="Get" Id="{e9945973-efcc-46b6-aeb9-3074c448ab78}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Homing := fbPunchAxis.Homing;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InsideMat" Id="{0c2fc569-156f-4f3c-9150-26686d1fa485}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY InsideMat : BOOL]]></Declaration>
+      <Get Name="Get" Id="{fa9bb054-d26a-417b-84e6-88957a8e1725}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InsideMat := NOT bOutsideMat;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Jog" Id="{7415a225-522d-41cf-b797-add26ee8988d}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Jog : E_OperationResult
+VAR_INPUT
+	JogPos					: BOOL;
+	JogNeg					: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+Jog := E_OperationResult.eOperationResult_NOk;
+
+IF fbSeq.SequenceId <> E_PunchEngineCmd.cmdJog THEN
+	fbSeq.Start(E_PunchEngineCmd.cmdJog);
+//	RETURN;
+END_IF
+
+IF JogPos AND JogNeg THEN
+	RETURN;
+END_IF
+
+bJogPos := JogPos;
+bJogNeg := JogNeg;
+
+Jog := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogStop" Id="{8cd0d661-a706-49fc-808b-a8f5b86df139}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD JogStop : E_OperationResult
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+JogStop := E_OperationResult.eOperationResult_NOk;
+
+bJogPos := FALSE;
+bJogNeg := FALSE;
+
+JogStop := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MotorTemp" Id="{dfc859cc-e9e2-4ef3-98b2-fa61f8f9055e}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual motor temp. [°C]
+PROPERTY MotorTemp : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{85d387e1-487c-40a7-8e03-7bde85830e2c}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual motor temp. [°C]
+MotorTemp := fbPunchAxis.MotorTemp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="MoveBDC" Id="{88fb97d9-56d8-4cbb-a0fc-85716abba141}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveBDC : E_OperationResult
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveBDC := E_OperationResult.eOperationResult_NOk;
+
+IF ABS(CrankAngle-180) < fToleranceWindowDeg THEN
+	RETURN;
+END_IF
+
+fMovePosition := 2*fCrankThrow;
+fVelocity := fDefaultVelocity; //MAX(MIN(fMaxVelocity, Velocity),fMinVelocity);	
+fAcceleration := fDefaultAcceleration;
+fbSeq.Start(E_PunchEngineCmd.cmdMove);
+
+MoveBDC := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MovePos" Id="{e27ac127-bb4d-485d-9d8c-ae63f363ce97}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MovePos : E_OperationResult
+VAR_INPUT
+	MovePosition			: LREAL;
+	Velocity				: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MovePos := E_OperationResult.eOperationResult_NOk;
+
+IF ABS(DegToPistonTravel(CrankAngle)-MovePosition) < fToleranceWindowMM THEN
+	RETURN;
+END_IF
+
+fMovePosition := MovePosition;
+fVelocity := MAX(MIN(fMaxVelocity, Velocity),fMinVelocity);	
+fAcceleration := fDefaultAcceleration;
+fbSeq.Start(E_PunchEngineCmd.cmdMove);
+
+MovePos := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveSTART" Id="{ace88c23-e536-43ef-8cd8-6347db0eaf6d}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveSTART : E_OperationResult
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveSTART := E_OperationResult.eOperationResult_NOk;
+
+fMovePosition := fCrankThrow*2 - fPunchHeight - fPunchHeightAddon ;
+fVelocity := fDefaultVelocity; //MAX(MIN(fMaxVelocity, Velocity),fMinVelocity);	
+fAcceleration := fDefaultAcceleration;
+fbSeq.Start(E_PunchEngineCmd.cmdMove);
+
+MoveSTART := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveTDC" Id="{ccba4629-8db2-4b38-8865-6e12cfe60959}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveTDC : E_OperationResult
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveTDC := E_OperationResult.eOperationResult_NOk;
+
+IF TDC THEN
+	RETURN;
+END_IF
+
+fMovePosition := 0;
+fVelocity := fDefaultVelocity; //MAX(MIN(fMaxVelocity, Velocity),fMinVelocity);	
+fAcceleration := fDefaultAcceleration;
+fbSeq.Start(E_PunchEngineCmd.cmdMove);
+
+MoveTDC := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Moving" Id="{bfa15079-bda4-44f5-9020-a0fda64195e9}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Moving : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{af174b21-26ab-4fbc-9b8f-61a4516c3353}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Moving := fbPunchAxis.Moving;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="NotMoving" Id="{bf2c012c-7120-4c7a-9025-b672f8efdd60}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY NotMoving : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{0f56c44c-78bb-49e4-b564-b08686c4b76f}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[NotMoving := fbPunchAxis.NotMoving;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="OutletBeltJog" Id="{21617ccf-a8fa-4e63-ab63-b057cc08f188}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD OutletBeltJog : BOOL
+VAR_INPUT
+	Enable					: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//bEnableOutletBelt := FALSE;
+//fbSeqOutletBelt.Init();
+IF bEnableOutletBelt THEN
+	RETURN;
+END_IF
+fbOutletbelt.SwitchState(Enable);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="OutletBeltOnce" Id="{98548120-3b2a-44fe-bcf4-90605d45bc4a}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD OutletBeltOnce : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeqOutletBelt.Init();
+tintervallOutletbelt := T#0S;
+bEnableOutletBelt := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="OutletBeltSeq" Id="{3326b6f2-56af-466e-9c33-a51d3a07d217}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD OutletBeltSeq : BOOL
+VAR_INPUT
+	bEnable				: BOOL;
+	tIntervall			: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bEnable THEN
+	bEnableOutletBelt := FALSE;
+	fbSeqOutletBelt.Init();
+	fbOutletbelt.SwitchState(FALSE);
+ELSE
+	bEnableOutletBelt := bEnable;
+	tIntervallOutletbelt := DINT_TO_TIME(1000*UINT_TO_DINT(tIntervall));
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="OutsideMat" Id="{d6c5166c-eb9c-411f-9e4b-06207391dedc}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY OutsideMat : BOOL]]></Declaration>
+      <Get Name="Get" Id="{81f05e00-a2e7-4cbf-856c-f79aafe3bba5}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[OutsideMat := bOutsideMat;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Override" Id="{30a9c1be-4062-4cb7-af1c-d8a6472929fa}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{1e8d6658-3a98-4a99-8058-9a85afcd334b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Override := fbPunchAxis.Override;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{6f4933c0-9fb5-46d7-81ce-74492a4b6d6c}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF Override <> fbPunchAxis.Override THEN
+	fbPunchAxis.Override := Override;
+	fbPunchAxis.posTorqueLimit := 100;
+	fbPunchAxis.negTorqueLimit := 100;
+END_IF]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="PistonTravelToDeg1" Id="{bf136d77-3285-47fa-9612-5f9f910d148a}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD PistonTravelToDeg1 : LREAL
+VAR_INPUT
+	fPistonTravel		: LREAL;
+END_VAR
+VAR
+	h					: LREAL;
+	tmp					: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fPistonTravel > 2 * fCrankThrow OR fPistonTravel < 0 THEN
+	RETURN;
+END_IF
+
+IF fPistonTravel = 0 THEN
+	PistonTravelToDeg1:= 0;	
+	RETURN;
+END_IF
+
+IF fPistonTravel = 2 * fCrankThrow THEN
+	PistonTravelToDeg1:= 180;	
+	RETURN;
+END_IF
+
+h := fPistonTravel + fRodLenght - fCrankThrow;
+
+tmp := (-fRodLenght*fRodLenght + h*h + fCrankThrow*fCrankThrow)/(2*h*fCrankThrow);
+
+PistonTravelToDeg1:= 180 - rad_to_deg(ACOS(tmp));
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="PistonTravelToDeg2" Id="{cb03b3d8-4b16-4193-a913-1a9ca0db5b06}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD PistonTravelToDeg2 : LREAL
+VAR_INPUT
+	fPistonTravel		: LREAL;
+END_VAR
+VAR
+	h					: LREAL;
+	tmp					: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fPistonTravel > 2 * fCrankThrow OR fPistonTravel < 0 THEN
+	RETURN;
+END_IF
+
+IF fPistonTravel = 0 THEN
+	PistonTravelToDeg2:= 0;	
+	RETURN;
+END_IF
+
+IF fPistonTravel = 2 * fCrankThrow THEN
+	PistonTravelToDeg2:= 180;	
+	RETURN;
+END_IF
+
+h := fPistonTravel + fRodLenght - fCrankThrow;
+
+tmp := (-fRodLenght*fRodLenght + h*h + fCrankThrow*fCrankThrow)/(2*h*fCrankThrow);
+
+PistonTravelToDeg2:= 180 + rad_to_deg(ACOS(tmp));
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Punch" Id="{5a8a1b3d-f129-4630-8668-1568eb87ed80}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Punch : E_OperationResult
+VAR_INPUT
+	Continuous				: BOOL;
+END_VAR
+
+VAR
+	stMovAddParameter			: ST_AxisMoveAddParameter;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+Punch := E_OperationResult.eOperationResult_NOk;
+
+fVelocity := MAX(MIN(fMaxVelocity, fPunchVelocity),fMinVelocity);	
+fAcceleration := MAX(MIN(fMaxAcceleration, fAcceleration),fMinAcceleration);
+
+bPunchDone:= FALSE;
+
+IF fbseq.SequenceId <> E_PunchEngineCmd.cmdPunch THEN
+	nPunchRemain := 1;
+	fbSeq.Start(E_PunchEngineCmd.cmdPunch);	
+END_IF
+
+IF Continuous THEN
+	nPunchRemain := nPunchRemain + 1;
+END_IF
+
+Punch := E_OperationResult.eOperationResult_Ok;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="PunchCount" Id="{995d008e-30b6-4085-8567-253397661540}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PunchCount : UDINT]]></Declaration>
+      <Get Name="Get" Id="{ea4c94ea-7833-4007-9a30-2a356feaa65a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[PunchCount := nPunchCount;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="PunchDone" Id="{8e65eb13-4433-496c-9f7c-7f3811424ba1}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PunchDone : BOOL]]></Declaration>
+      <Get Name="Get" Id="{84390d25-8fd7-4337-bde4-2ce825d2b69c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[PunchDone := bPunchDone;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="PunchHeight" Id="{926984c0-80f2-4705-8585-140bd0aff042}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PunchHeight : REAL]]></Declaration>
+      <Get Name="Get" Id="{8eb38317-a13c-450b-af89-908857a117a8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[PunchHeight := fPunchHeight;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{5ab62919-e283-4f21-8949-e2161c8bbbd3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fPunchHeight := PunchHeight;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Punching" Id="{6c7b0d5f-990b-46fb-a1a1-def06d39f8c0}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Punching : BOOL]]></Declaration>
+      <Get Name="Get" Id="{5229b486-4d14-4f95-9e5d-25202cc7eeeb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Punching := fbSeq.SequenceId = E_PunchEngineCmd.cmdPunch AND fbSeq.State = E_SequenceState.eSequenceState_running;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Ready" Id="{08ef31d0-3b84-4313-beb1-23b99b15b718}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Ready : BOOL]]></Declaration>
+      <Get Name="Get" Id="{c8c928ef-612a-4c5d-977d-6aa695ba0e5c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Ready := fbPunchAxis.MotionState <> MC_AXISSTATE_DISABLED;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{cf7a3a72-2e16-46b1-b918-00549dc00d94}">
+      <Declaration><![CDATA[/// Reset component logic
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+fbPunchAxis.Reset();
+fbPunchAxis.TorqueLimit := 100;
+fbPunchAxis.posTorqueLimit := 100;
+fbPunchAxis.negTorqueLimit := 100;
+
+fbOutletbelt.Reset();
+nPunchRemain := 0;
+
+fbSeq.Init();			
+fbSeqOutletBelt.Init();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{7c75f070-9473-4034-8e74-d30e6747d1e0}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// run Base Logic
+Run := SUPER^.Run();
+
+IF __ISVALIDREF(refEnable) THEN
+	bEnable := refEnable;
+END_IF
+
+// run Axis Driver
+fbPunchAxis.Run();
+fbPunchAxis.Enable := bEnable;
+fbPunchAxis.EnablePos := bEnable;
+fbPunchAxis.EnableNeg := bEnable;
+
+
+fbOutletbelt.Run();
+
+// watch Position
+fTravelPosition := DegToPistonTravel(CrankAngle);
+bOutsideMat := DegToPistonTravel(CrankAngle) < (fCrankThrow*2 - fPunchHeight - fPunchHeightAddon);  
+
+// run Sequences
+fbSeq.Enable := TRUE;
+fbSeq.Base(FALSE, FALSE);
+CASE fbSeq.SequenceId OF	
+	E_PunchEngineCmd.cmdMove:	_Move();
+	E_PunchEngineCmd.cmdHalt:	_Halt();	
+	E_PunchEngineCmd.cmdPunch:	_Punch();	
+	E_PunchEngineCmd.cmdHome:	_Home();
+	E_PunchEngineCmd.cmdJog:	_Jog();
+END_CASE
+
+fbSeqOutletBelt.Enable := TRUE;
+fbSeqOutletBelt.Base(FALSE, FALSE);				
+_OutletBelt();
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetObstacle" Id="{d5a4d986-d0b8-4a4c-9fa6-45f483c0f9ce}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetObstacle : BOOL
+VAR_IN_OUT
+	Obstacle			: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[refObstacle REF= Obstacle;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Setup" Id="{f9b5d3bc-fab7-4184-a020-9637294826a2}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD Setup
+VAR_INPUT
+	eAxis					: E_Axis;
+	eDigitalOutlet			: E_DigitalOutput;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbPunchAxis.Name := 'Punch Axis';
+fbPunchAxis.SetAxisReference(COMP.astAxisRef[eAxis_Punch], COMP.astAxisIO[eAxis_Punch].stIn, COMP.astAxisIO[eAxis_Punch].stOut);
+fbPunchAxis.AxisType := E_AxisType.AX5xxx;
+fbPunchAxis.DefaultParameter.stMovAbsPrm.fVelocity := 30;
+fbPunchAxis.Active := TRUE;
+fbPunchAxis.Override := 100;
+fbPunchAxis.DefaultParameter.stJogAccPrm.fFastSpeed := 20;
+fbPunchAxis.DefaultParameter.stJogAccPrm.fSlowSpeed := 1;
+fbPunchAxis.DefaultParameter.stJogAccPrm.tAccTime := T#5S;
+fbPunchAxis.EnableLimitSensor:= FALSE;	
+
+
+fbOutletbelt.Name := 'Outletbelt';
+fbOutletbelt.SetReferences(COMP.aStDigitalOutputIO[eDigitalOutput_OutletBelt]);
+fbOutletbelt.Active := TRUE;
+tOutletbeltRuntime := T#25S;
+
+
+fMaxVelocity		 := 1111;
+fMinVelocity		 := 10;
+fDefaultVelocity	 := 180;
+
+fMaxAcceleration	 := 1000000;
+fMinAcceleration	 := 0;
+fDefaultAcceleration := 0;
+
+fToleranceWindowMM	 := 0.5;
+fToleranceWindowDeg	 := 1.5;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupCrank" Id="{7e7b758d-ba72-459a-ab92-3d38f0f4e896}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupCrank : BOOL
+VAR_INPUT
+	fRodLenght				: REAL;
+	fCrankThrow				: REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.fRodLenght	:= fRodLenght;
+THIS^.fCrankThrow	:= fCrankThrow;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupEnable" Id="{8082b22f-68af-40fc-bbe5-b590738b1112}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupEnable : BOOL
+
+VAR_IN_OUT
+	bEnable					: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[refEnable REF= bEnable;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupPunch" Id="{116cd1a8-305b-45f4-91e1-4411a3f332ff}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupPunch : BOOL
+VAR_INPUT
+	PunchHeight					: REAL;
+	PunchHeightAddon			: REAL;
+	MaxVelocity					: LREAL;
+	MaxAcceleration				: LREAL;
+	TimeBetweenPunch			: LREAL;
+END_VAR
+
+VAR
+	tmpAngle					: LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF TimeBetweenPunch = 0  THEN
+	fPunchVelocity := MaxVelocity;
+	fPunchAcceleration := MaxAcceleration;
+	RETURN;
+END_IF
+
+fPunchHeight := PunchHeight;  
+fPunchHeightAddon := PunchHeightAddon;
+
+
+tmpAngle := PistonTravelToDeg1(fCrankThrow*2 - PunchHeight - PunchHeightAddon);
+
+fPunchVelocity := MIN((2*tmpAngle/TimeBetweenPunch), MaxVelocity);
+fPunchAcceleration := MaxAcceleration;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetZeroOffset" Id="{b297f2b0-c31d-4c8c-a824-50ff9481b738}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD SetZeroOffset
+VAR
+	stParam				: st_AxisHomingParameter;
+	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fZeroOffset := fbPunchAxis.ActModuloPos;
+
+stParam.fPosition:= 0;
+stParam.eHomingMode := MC_HomingMode.MC_Direct; 
+
+fbPunchAxis.HomeEx(stParam);]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="TargetReached" Id="{e22e93ae-1602-40c8-9b48-ae2edea5157a}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY TargetReached : BOOL]]></Declaration>
+      <Get Name="Get" Id="{42b47bda-c9ea-46f0-8792-90d0acfef968}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TargetReached := fbPunchAxis.TargetReachedMod(fToleranceWindowDeg);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="TDC" Id="{e3ba09dc-c1e6-4cff-805f-a079aad8bcc7}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY TDC : BOOL]]></Declaration>
+      <Get Name="Get" Id="{48a1f83b-20ba-4a38-8ca0-eb18676e4e1f}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TDC := ABS(CrankAngle) < fToleranceWindowDeg;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Torque" Id="{b39f6def-2c18-4d9b-a159-5077e7a6d690}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual torque [Nm]
+PROPERTY Torque : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{04c52b46-a852-4874-9b8a-1f0909b2e22b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual torque [Nm]
+Torque := fbPunchAxis.Torque;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="TorqueLimit" Id="{c73f6951-37b5-403f-b965-7c7f74721118}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY TorqueLimit : INT
+]]></Declaration>
+      <Get Name="Get" Id="{eba28e9a-b239-4262-943a-dd79bd47289e}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+TorqueLimit := nTorqueLimit;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{b9bad589-cccd-4b9b-91bd-d80c744333d6}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nTorqueLimit := TorqueLimit;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="TorqueLimitNeg" Id="{db6e1ad0-0d4e-450e-a738-dabae3ce5a06}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY TorqueLimitNeg : INT
+]]></Declaration>
+      <Get Name="Get" Id="{5a57e33a-86c1-45a4-b3f2-064eda1cd518}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+TorqueLimitNeg := nTorqueLimitNeg;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{5b0bdf10-1e3f-4b0d-91e9-d774e01d9b20}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nTorqueLimitNeg := TorqueLimitNeg;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="TorqueLimitPos" Id="{9de09ef5-d2ad-41d2-ac39-d853e18d0270}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY TorqueLimitPos : INT
+]]></Declaration>
+      <Get Name="Get" Id="{878e451c-d63d-4e5b-bea6-32af84f7a30b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+TorqueLimitPos := nTorqueLimitPos;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{0ff80f22-1768-4564-b58e-ac1056afe2cd}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nTorqueLimitPos := TorqueLimitPos;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Velocity" Id="{5d424138-e278-4914-8b83-276943379228}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Velocity : LREAL]]></Declaration>
+      <Get Name="Get" Id="{7bff0bbc-e1b0-4a3c-9fc3-d3d0787040f3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Velocity := fVelocity;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ZeroOffset" Id="{54f4096a-6dd8-4e96-b94c-46f0d3936157}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY ZeroOffset : LREAL]]></Declaration>
+      <Get Name="Get" Id="{af92fa33-6cb5-4ac4-9efb-7f265d99dd56}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ZeroOffset := fZeroOffset;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="FB_PunchEngine">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine._Halt">
+      <LineId Id="6" Count="1" />
+      <LineId Id="31" Count="2" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="36" Count="1" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="67" Count="2" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine._Home">
+      <LineId Id="71" Count="34" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine._Jog">
+      <LineId Id="6" Count="5" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="14" Count="4" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="23" Count="6" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine._Move">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="68" Count="2" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="20" Count="2" />
+      <LineId Id="72" Count="3" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine._OutletBelt">
+      <LineId Id="20" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="43" Count="1" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine._Punch">
+      <LineId Id="6" Count="1" />
+      <LineId Id="31" Count="1" />
+      <LineId Id="251" Count="2" />
+      <LineId Id="255" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="210" Count="5" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="264" Count="1" />
+      <LineId Id="216" Count="2" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="219" Count="1" />
+      <LineId Id="222" Count="2" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="267" Count="0" />
+      <LineId Id="269" Count="0" />
+      <LineId Id="268" Count="0" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="180" Count="0" />
+      <LineId Id="160" Count="2" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="48" Count="1" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="280" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="240" Count="0" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="271" Count="2" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.AmplifierTemp.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.BDC.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.CrankAngle.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.DegToPistonTravel">
+      <LineId Id="42" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="6" Count="1" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="30" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Halt">
+      <LineId Id="14" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Home">
+      <LineId Id="12" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Homed.Get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Homing.Get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.InsideMat.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Jog">
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="34" Count="3" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="43" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.JogStop">
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="43" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.MotorTemp.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.MoveBDC">
+      <LineId Id="81" Count="0" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.MovePos">
+      <LineId Id="20" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="6" Count="4" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.MoveSTART">
+      <LineId Id="81" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.MoveTDC">
+      <LineId Id="92" Count="0" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="84" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="77" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Moving.Get">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.NotMoving.Get">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.OutletBeltJog">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.OutletBeltOnce">
+      <LineId Id="34" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.OutletBeltSeq">
+      <LineId Id="14" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.OutsideMat.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Override.Get">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Override.Set">
+      <LineId Id="6" Count="0" />
+      <LineId Id="3" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="4" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.PistonTravelToDeg1">
+      <LineId Id="60" Count="2" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="71" Count="8" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.PistonTravelToDeg2">
+      <LineId Id="62" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="77" Count="3" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="48" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Punch">
+      <LineId Id="86" Count="1" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="220" Count="1" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="180" Count="0" />
+      <LineId Id="75" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.PunchCount.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.PunchDone.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.PunchHeight.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.PunchHeight.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Punching.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Ready.Get">
+      <LineId Id="6" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Reset">
+      <LineId Id="9" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="29" Count="1" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Run">
+      <LineId Id="97" Count="1" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="99" Count="8" />
+      <LineId Id="131" Count="1" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="108" Count="11" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="75" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.SetObstacle">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Setup">
+      <LineId Id="7" Count="4" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="12" Count="2" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="58" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.SetupCrank">
+      <LineId Id="11" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.SetupEnable">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.SetupPunch">
+      <LineId Id="36" Count="0" />
+      <LineId Id="61" Count="1" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="34" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="19" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.SetZeroOffset">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="2" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TargetReached.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TDC.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Torque.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TorqueLimit.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TorqueLimit.Set">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TorqueLimitNeg.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TorqueLimitNeg.Set">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TorqueLimitPos.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.TorqueLimitPos.Set">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.Velocity.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PunchEngine.ZeroOffset.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

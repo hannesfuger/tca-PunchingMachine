@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <GVL Name="GVL_Supervision" Id="{9edb334e-378d-45c9-944c-94b3b7ac8702}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+	/// GENERAL
+	aCodeErr						: ARRAY[0..eCodeError_maxIdx] OF BOOL;
+	 
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>

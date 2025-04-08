@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="F_SpeedWindowReached" Id="{cc97e087-1670-4fff-8ca1-38bc7f2d5638}" SpecialFunc="None">
+    <Declaration><![CDATA[/// determines whether the actual speed (ABS value) is within the target-speed window
+FUNCTION F_SpeedWindowReached : BOOL
+VAR_INPUT
+	/// factor for tolerance (default: 0.1)
+	fToleranceFactor: REAL;
+	/// actual speed
+	fActualSpeed: LREAL;
+	/// target speed
+	fTargetSpeed: LREAL;
+	/// Override for axis and spindle
+	fOverride: LREAL;
+END_VAR
+VAR CONSTANT
+	fDefaultfToleranceFactor: REAL := 0.1;
+END_VAR
+VAR
+	fTol: LREAL;
+	fMin: LREAL;
+	fMax: LREAL;
+	fAct: LREAL;
+	fTar: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// validate tolerance factor
+IF fToleranceFactor <= 0 THEN
+	fToleranceFactor:=fDefaultfToleranceFactor;
+END_IF
+
+// calc tolerance window and ABS values
+fTar:=fTargetSpeed*(fOverride/100);
+fTol:=ABS(fTar) * fToleranceFactor;
+fMin:=ABS(fTar) - fTol;
+fMax:=ABS(fTar) + fTol;
+fAct:=ABS(fActualSpeed);
+
+F_SpeedWindowReached := fAct >= fMin AND fAct <= fMax;]]></ST>
+    </Implementation>
+    <LineIds Name="F_SpeedWindowReached">
+      <LineId Id="3" Count="11" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_PunchParam" Id="{f88b782f-3319-4889-9349-4af439229122}">
+    <Declaration><![CDATA[TYPE ST_PunchParam :
+STRUCT		
+	fOverride				: LREAL;
+	bCheckPosBeforeRun		: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

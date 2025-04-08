@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisStopParameter" Id="{5c5d7e36-ead5-4620-9215-becaa9082da2}">
+    <Declaration><![CDATA[TYPE ST_AxisStopParameter :
+STRUCT
+	fDeceleration: LREAL;
+	fJerk: LREAL;
+	stOptions: ST_MoveOptions;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

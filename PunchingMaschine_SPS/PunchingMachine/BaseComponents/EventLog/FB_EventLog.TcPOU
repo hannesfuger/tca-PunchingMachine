@@ -1,0 +1,529 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_EventLog" Id="{102c5fa1-bf54-4452-a712-b2c02de714f1}" SpecialFunc="None">
+    <Declaration><![CDATA[/// HMI access provider (host for sub hmi provider)
+FUNCTION_BLOCK  FB_EventLog
+VAR	
+	/// interfaces
+	ILog						: ITFLoggingProvider;
+	stLogConfig					: ST_LoggingConfig;
+	
+	/// Logging Provider
+	fbDebugLog					: FB_DebugLoggingProvider;
+	fbFileLog					: FB_FileLoggingProvider;
+	fbEventLog					: FB_EventLoggingProvider;	
+	fbEventlogger 				: FB_TcEventLogger;
+
+
+	/// default notification array mirror (for compare)
+	aEvents						: ARRAY[0..iMaxIdxEvents] OF ST_Event;
+	aEventsMirror				: ARRAY[0..iMaxIdxEvents] OF ST_Event;
+	diEventsChanged				: DINT;	
+	diEventsChangedOld			: DINT;	
+	nLastIndex					: INT;
+	
+	ptLastEvent					: POINTER TO ST_Event;
+	
+	//aEventsMirror				: ARRAY[0..iMaxIdxMachineAreas, 0..iMaxIdxComponent, 0..iMaxIdxEvents] OF ST_Event;
+	/// private var's
+	eErrorLevel					: E_Priority;
+	eErrorLevelMirror			: E_Priority;	
+	eLogLevel					: E_LogLevel;	
+	
+	bMute						: BOOL;
+	
+	fbAlarm						: FB_TcAlarm;
+	fbMessage					: FB_TcMessage;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// Event Log
+/// Hannes Fuger /www.asma.at/01.2016
+/// ]]></ST>
+    </Implementation>
+    <Folder Name="Commands" Id="{8c92f0b0-2b5c-4750-bfde-7e05f4caa557}" />
+    <Folder Name="Utilities" Id="{fa376e08-ebd0-49ba-920b-9601862a8547}" />
+    <Property Name="Config" Id="{f7e5c933-e82d-460b-9b6a-632e3af1934c}">
+      <Declaration><![CDATA[PROPERTY Config : ST_LoggingConfig]]></Declaration>
+      <Get Name="Get" Id="{8b0419fd-f254-4efc-bf1f-befe518b0a75}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Config := stLogConfig;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{0811d93d-9ee4-4dbf-9d91-b51ebd900971}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[stLogConfig := Config;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ErrorLevel" Id="{e0862e02-55fe-4188-9aee-a6a7d6cd9a31}">
+      <Declaration><![CDATA[/// System error level
+PROPERTY ErrorLevel : E_Priority
+]]></Declaration>
+      <Get Name="Get" Id="{ac84ec14-3b21-4f06-ba7d-4de5d808bf3c}">
+        <Declaration><![CDATA[INTERNAL
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ErrorLevel := eErrorLevel;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="EventsChanged" Id="{fe53be0e-2af7-4e64-af30-91f19d19db6d}">
+      <Declaration><![CDATA[PROPERTY EventsChanged : BOOL]]></Declaration>
+      <Get Name="Get" Id="{4f39d221-14db-449d-81b9-7f1785dced04}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[EventsChanged := diEventsChanged <> diEventsChangedOld;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="FilterEvents" Id="{3329d7b2-9e67-417e-bd9e-9fbc92b3b1f9}" FolderPath="Commands\">
+      <Declaration><![CDATA[/// Filtert aktuelle Meldungen
+METHOD PUBLIC FilterEvents : BOOL
+VAR_INPUT
+	/// Notification filter
+	stFilter	: ST_EventFilter;
+END_VAR
+VAR_IN_OUT
+	/// notification array (result)
+	aResult		: ARRAY[0..iMaxIdxEvents] OF ST_Event;
+END_VAR
+VAR
+	idx, iRes, iLast 		: INT;
+	bFilterOk				: BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iRes := 0;
+MEMSET(ADR(aResult), 0, SIZEOF(aResult));
+iLast := nLastIndex+1;
+
+FOR idx := 0 TO iMaxIdxEvents DO
+	bFilterOk := TRUE;
+	// IsRaised - Filter
+	IF (stFilter.eIsRaisedFilter = eBoolFilter_false AND aEvents[iLast].bIsRaised) OR_ELSE 
+	   (stFilter.eIsRaisedFilter = eBoolFilter_true AND NOT aEvents[iLast].bIsRaised) THEN
+		bFilterOk := FALSE;
+	END_IF
+	
+	// Area - Filter
+	IF (stFilter.eAreaFilter <> E_MachineArea.eMachineArea_none) AND_THEN
+	   (stFilter.eAreaFilter <> aEvents[iLast].eMachineArea) THEN
+		bFilterOk := FALSE;
+	END_IF
+	
+	// Error - Filter
+	IF bFilterOk AND ((stFilter.eErrorFilter AND (aEvents[iLast].ePriority = ePriority_fault OR aEvents[iLast].ePriority = ePriority_faultEmergency OR aEvents[iLast].ePriority = ePriority_faultFastStop))
+	// Warning - Filter
+	OR (stFilter.eWarningFilter AND aEvents[iLast].ePriority = E_Priority.ePriority_warning)	
+	// Info - Filter
+	OR (stFilter.eInfoFilter AND aEvents[iLast].ePriority = E_Priority.ePriority_info)) THEN
+		
+		// add notification to result
+		MEMCPY(ADR(aResult[iRes]), ADR(aEvents[iLast]), SIZEOF(aEvents[iLast]));
+		iRes := iRes + 1;
+	END_IF
+	iLast := (iLast+1) MOD (iMaxIdxEvents+1);	
+END_FOR
+
+IF iRes > 0 THEN
+	FilterEvents := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="LastIndex" Id="{51f3d1d1-6188-4e16-bdae-c9542c701dfb}">
+      <Declaration><![CDATA[PROPERTY LastIndex : INT]]></Declaration>
+      <Get Name="Get" Id="{9b6f84bf-5cca-4d4c-bdb8-5487e28e454f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[LastIndex := nLastIndex;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Logger" Id="{17d44f7a-904d-409e-818c-3ad216fcc1a5}">
+      <Declaration><![CDATA[PROPERTY Logger : REFERENCE TO ITFLoggingProvider]]></Declaration>
+      <Get Name="Get" Id="{098b2771-3e29-4bca-be5e-a77344526e50}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Logger REF= ILog;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Mute" Id="{9cf31d3f-b6de-49d8-ba67-91d389dee70c}">
+      <Declaration><![CDATA[PROPERTY Mute : BOOL]]></Declaration>
+      <Get Name="Get" Id="{05fdef10-5c4b-46f0-8e09-4dd0d16c9093}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Mute := bMute;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{f1836986-ec82-452f-ae48-c8b1cb13264e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bMute := Mute;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="NextIndex" Id="{b2ef26ac-6750-4e08-938b-b6625e2cab3f}">
+      <Declaration><![CDATA[PROPERTY NextIndex : INT]]></Declaration>
+      <Get Name="Get" Id="{29d7c1db-d714-4a68-a824-7dc069476fd8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[NextIndex := (nLastIndex+1) MOD (iMaxIdxEvents+1);
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="QuittAll" Id="{9fcd465e-65c3-4683-b00e-2d45914b31d5}" FolderPath="Commands\">
+      <Declaration><![CDATA[/// sets the corresponding notification item flag raised
+{attribute 'object_name' := 'QuittAll'}
+METHOD QuittAll
+VAR_INPUT
+	eMachineArea	: E_MachineArea;
+END_VAR
+VAR
+	ni				: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR ni := 0 TO iMaxIdxEvents DO	
+	IF NOT aEvents[ni].bIsRaised THEN
+		CONTINUE;
+	END_IF
+	
+	IF aEvents[ni].eMachineArea = eMachineArea OR eMachineArea = E_MachineArea.eMachineArea_none THEN
+		QuittEvent(	aEvents[ni]);
+	END_IF
+END_FOR
+	
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="QuittEvent" Id="{ef5cdb4f-b30c-4222-bbdb-04b13370b726}" FolderPath="Commands\">
+      <Declaration><![CDATA[/// sets the corresponding notification item flag raised
+{attribute 'object_name' := 'QuittEvent'}
+METHOD QuittEvent
+VAR_INPUT
+	stItem			: ST_Event;
+END_VAR
+VAR
+	ni				: INT;
+	cmpItem			: ST_Event;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// suchen ob ähnlicher Eintrag vorhanden 
+// auch diesen quittieren
+
+FOR ni := 0 TO iMaxIdxEvents DO	
+	IF aEvents[ni].bIsRaised THEN
+		cmpItem := 	aEvents[ni];
+		// gleichsetzen damit beim Cmp kein Unterschied bei diesen Werten
+		cmpItem.dtQuitTime := stItem.dtQuitTime;			
+		cmpItem.dtRaiseTime := stItem.dtRaiseTime;	
+		cmpItem.nIdx := stItem.nIdx;	
+		
+		IF MEMCMP(ADR(cmpItem), ADR(stItem), SIZEOF(ST_EVENT)) = 0 THEN
+			aEvents[ni].bIsRaised := FALSE;
+			aEvents[ni].dtQuitTime := Statics.dtNow;
+			aEvents[ni].sQuitTime := SEL(aEvents[ni].dtQuitTime = DT#1970-01-01-00:00:00, REPLACE(DT_TO_STRING(aEvents[ni].dtQuitTime), '', 3, 1), '');		
+		END_IF
+		
+	END_IF
+END_FOR
+	
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reset" Id="{66751c2f-de0a-47de-9833-105c576a5553}">
+      <Declaration><![CDATA[/// resets all notification flags and reset-needed state 
+{attribute '' := ''}
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+VAR
+	ii: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// reset all items in default notification array
+MEMSET(ADR(aEvents), 0, SIZEOF(aEvents));
+MEMSET(ADR(aEventsMirror), 0, SIZEOF(aEventsMirror));
+
+// set default message priority
+FOR ii := 0 TO iMaxIdxEvents DO
+	aEvents[ii].ePriority := E_Priority.ePriority_fault;
+END_FOR
+
+nLastIndex := -1;
+
+eErrorLevel			:= ePriority_none;
+eErrorLevelMirror	:= ePriority_none;
+eLogLevel			:= eLogLevelNone;
+
+// set up logging provider
+IF stLogConfig.eLoggingProvider = eLoggingProviderFile THEN
+	fbFileLog(stLogConfig := stLogConfig);
+	ILog := fbFileLog;
+ELSIF stLogConfig.eLoggingProvider = eLoggingProviderEventLog THEN
+	fbEventLog(stLogConfig := stLogConfig);
+	ILog := fbEventLog;
+ELSE // default
+	ILog := fbDebugLog;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{9615b394-f69c-4380-8add-162af5a25a4d}">
+      <Declaration><![CDATA[METHOD Run : E_ComponentState
+VAR	/// private variabe
+	ii			: INT;	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// run Logger
+IF ILog <> 0 THEN
+	ILog.Run();
+END_IF
+
+diEventsChangedOld := diEventsChanged;
+// trigger notification changes
+IF (MEMCMP(ADR(aEventsMirror), ADR(aEvents), SIZEOF(aEvents)) <> 0) THEN
+	diEventsChanged := diEventsChanged  + 1; // in case of index-overrun, it (re)starts itself (-DINT max)
+	aEventsMirror := aEvents;
+END_IF
+
+// get max error level
+eErrorLevel := E_Priority.ePriority_none;
+FOR ii := 0 TO iMaxIdxEvents DO	
+	IF aEvents[ii].bIsRaised THEN
+		eErrorLevel := MAX(eErrorLevel, aEvents[ii].ePriority);
+		IF eErrorLevel <> eErrorLevelMirror THEN
+			eErrorLevelMirror := eErrorLevel;
+			CASE eErrorLevel OF
+				E_Priority.ePriority_none,
+				E_Priority.ePriority_info:
+					eLogLevel := E_Loglevel.eLogLevelInformation;
+				E_Priority.ePriority_warning:
+					eLogLevel := E_Loglevel.eLogLevelWarning;
+				E_Priority.ePriority_fault,
+				E_Priority.ePriority_faultFastStop,
+				E_Priority.ePriority_faultEmergency:
+					eLogLevel := E_Loglevel.eLogLevelError;
+			END_CASE
+			ILog.AddLog(Concat6('ErrorLevel changed, ID: ', INT_TO_STRING(aEvents[ii].nComponentID),'-',INT_TO_STRING(aEvents[ii].eEventID),', MSG: ', aEvents[ii].sDescription), 'Supervision', eLogLevel);
+		END_IF
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetEvent" Id="{53dd7761-00a6-4863-b03e-d33ba3544379}" FolderPath="Commands\">
+      <Declaration><![CDATA[/// sets the corresponding notification item flag raised
+{attribute 'object_name' := 'SetEvent'}
+METHOD SetEvent : POINTER TO ST_Event
+VAR_INPUT
+	/// item to set
+	stItem: ST_Event;
+END_VAR
+VAR
+	tmpIndex		: INT;
+	cmpItem			: ST_Event;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// suchen ob Eintrag schon vorhanden 
+// nach gewisser zeit wieder eintragen
+// sonst nichts unterenheme
+
+// set item in default notification array 
+tmpIndex := nextIndex;
+
+// letzter Event der selbe?
+IF tmpIndex > 0 THEN
+	cmpItem := aEvents[LastIndex];
+	// gleichsetzen damit beim Cmp kein Unterschied bei diesen Werten
+	cmpItem.dtQuitTime := stItem.dtQuitTime;
+	cmpItem.dtRaiseTime := stItem.dtRaiseTime;
+	cmpItem.nIdx := stItem.nIdx;
+	
+	IF MEMCMP(ADR(stItem), ADR(cmpItem), SIZEOF(ST_Event)) = 0 THEN 
+		RETURN;
+	END_IF
+END_IF
+
+
+aEvents[tmpIndex] := stItem;
+aEvents[tmpIndex].nIdx := tmpIndex;
+aEvents[tmpIndex].bIsRaised := TRUE;
+aEvents[tmpIndex].dtRaiseTime := Statics.dtNow;
+aEvents[tmpIndex].dtQuitTime := StaticsConstant.dtMinValue;
+
+aEvents[tmpIndex].sRaiseTime := SEL(aEvents[tmpIndex].dtRaiseTime = DT#1970-01-01-00:00:00, REPLACE(DT_TO_STRING(aEvents[tmpIndex].dtRaiseTime), '', 3, 1), '');
+aEvents[tmpIndex].sQuitTime := SEL(aEvents[tmpIndex].dtQuitTime = DT#1970-01-01-00:00:00, REPLACE(DT_TO_STRING(aEvents[tmpIndex].dtQuitTime), '', 3, 1), '');
+
+nLastIndex := tmpIndex;
+SetEvent := ADR(aEvents[nLastIndex]);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteError" Id="{34b76992-bc19-4d20-b5ad-c2e72d176ce0}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteError
+VAR_INPUT
+	Event			: E_Event;
+	Description 	: T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[WriteEvent(ePriority_fault, Event, Description, TRUE);
+//eState := E_ComponentState.eComponentState_error;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteEvent" Id="{f01f5ea9-50de-408a-836f-517f2f348ac3}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteEvent
+VAR_INPUT
+	Priority		: E_Priority;
+	Event			: E_Event;
+	Description 	: T_MaxString;
+	Signalize		: BOOL;
+END_VAR
+VAR
+	tmpItem			: ST_Event;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// chk
+
+tmpItem.eComponent := E_ComponentType.eComponentType_none;
+tmpItem.eEventID := Event;
+tmpItem.eMachineArea := E_MachineArea.eMachineArea_common;
+tmpItem.ePriority := Priority;
+tmpItem.nComponentID := 0;
+tmpItem.sDescription := Description;
+tmpItem.bSignalize := Signalize;
+
+IF 	ptLastEvent <> 0 AND_THEN
+	ptLastEvent^.bIsRaised AND_THEN
+   	tmpItem.eEventID = ptLastEvent^.eEventID AND_THEN
+	tmpItem.sDescription = ptLastEvent^.sDescription AND_THEN 
+	tmpItem.ePriority = ptLastEvent^.ePriority THEN 
+	RETURN;
+END_IF
+
+ptLastEvent := SetEvent(tmpItem);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteInfo" Id="{1eb4e00b-a221-45e0-87bc-a97a2308bb0b}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteInfo
+VAR_INPUT
+	Event			: E_Event;
+	Description 	: T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[WriteEvent(ePriority_info, Event, Description, FALSE);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteWarning" Id="{ee7270ed-6280-4a87-913e-8e156f124465}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteWarning
+VAR_INPUT
+	Event			: E_Event;
+	Description 	: T_MaxString;
+	Signal			: BOOL;
+END_VAR
+VAR
+	tmpItem			: ST_Event;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[WriteEvent(ePriority_warning, Event, Description, Signal);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_EventLog">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Config.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Config.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.ErrorLevel.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.EventsChanged.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.FilterEvents">
+      <LineId Id="3" Count="33" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.LastIndex.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Logger.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Mute.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Mute.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.NextIndex.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.QuittAll">
+      <LineId Id="3" Count="10" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.QuittEvent">
+      <LineId Id="3" Count="20" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Reset">
+      <LineId Id="3" Count="25" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.Run">
+      <LineId Id="3" Count="32" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.SetEvent">
+      <LineId Id="3" Count="29" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="43" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.WriteError">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.WriteEvent">
+      <LineId Id="3" Count="0" />
+      <LineId Id="7" Count="8" />
+      <LineId Id="44" Count="8" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.WriteInfo">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EventLog.WriteWarning">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

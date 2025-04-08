@@ -1,0 +1,1357 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_MatAndToolHandling" Id="{a6bb103e-ddbd-41c7-9d04-5c7fca296ec9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_MatAndToolHandling EXTENDS FB_CompositionBase
+VAR
+	
+	// Sequencer
+	fbSeq						: FB_Sequence;
+	
+	stPosition					: ST_Coordinate;
+	nToolDockingNr				: INT;
+	
+	fVelocityX					: LREAL;	
+	fVelocityY					: LREAL;
+	fAccelerationX				: LREAL;	
+	fAccelerationY				: LREAL;
+	
+	bJogReverseDirectionX		: BOOL;
+	bJogReverseDirectionY		: BOOL;
+	bJogX						: BOOL;
+	bJogY						: BOOL;
+		
+	bMoveX						: BOOL;
+	bMoveY						: BOOL;
+	
+	// Watch Variables	
+	refObstacle					: REFERENCE TO BOOL;
+	bInPosition					: BOOL;
+	
+	// Tool/Mat Data
+	nCurTooldockingNr			: INT;
+	afDistanceTooldocking		: ARRAY[1..2] OF REAL;	
+	astOffsetDie				: ARRAY[1..2] OF ST_Coordinate;
+	
+
+	nVelocityMultiplier			: INT;
+	nAccelerationMultiplier		: INT;	
+	stOffsetMat					: ST_Coordinate;
+	
+	
+	// Settings
+	
+	fMaxVelocityX				: LREAL;
+	fMinVelocityX				: LREAL;
+	fMaxAccelerationX			: LREAL;
+	fMinAccelerationX			: LREAL;
+	
+	fMaxVelocityY				: LREAL;
+	fMinVelocityY				: LREAL;
+	fMaxAccelerationY			: LREAL;
+	fMinAccelerationY			: LREAL;
+	
+	fDefaultVelocity			: LREAL;
+	fDefaultAcceleration		: LREAL;	
+	
+	fToleranceWindow			: LREAL := 0.5;
+	stMaintPosition				: ST_Coordinate;
+	
+	// Axis
+	bEnable						: BOOL := TRUE;
+	refEnable					: REFERENCE TO BOOL;
+	fbAxisX						: FB_AxisDriver;
+	fbAxisY						: FB_AxisDriver;
+	
+	// Cylinder
+	fbToolSelector				: FB_CylinderDriver;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Commands" Id="{377f9c91-d0c7-42d8-951e-ff1d956d437a}" />
+    <Folder Name="Properties" Id="{658f387c-1b3c-422b-8b15-9aa5381860ec}" />
+    <Folder Name="Sequences" Id="{cd7652ee-8198-4eed-861a-a7ed543e0f62}" />
+    <Folder Name="Setup" Id="{ae65bc78-5fd6-47e0-96e6-e84065484636}" />
+    <Folder Name="Utilities" Id="{cd021480-2e63-4703-8886-72b16ef7094f}" />
+    <Method Name="_ChangeTool" Id="{f0ab3374-31e9-4529-8c12-c3506d2f5919}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _ChangeTool : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'ChangeTool';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('switch Valves for selected Tooldocking', T#0S);
+		
+		CASE nToolDockingNr OF
+			1: fbToolSelector.ToWP();		
+			2: fbToolSelector.ToHP();
+		END_CASE
+
+		fbSeq.NextStep(10);
+	
+	
+10	 :	fbSeq.StepDefinition('Tooldock changing', T#0S);
+
+		IF fbToolSelector.ActualPosition = fbToolSelector.RequestPosition THEN
+			nCurTooldockingNr := nToolDockingNr;
+			fbSeq.Finish();
+		END_IF
+	
+
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Halt" Id="{6e59e6b5-773f-4790-89cb-2010bd373a91}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Halt : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Halt';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Punchaxis Halt', T#0S);
+		fbAxisX.Halt();
+		fbAxisY.Halt();				
+		fbSeq.NextStep(10);
+	
+	
+10	 :	fbSeq.StepDefinition('', T#0S);
+		IF fbAxisX.NotMoving AND fbAxisY.NotMoving THEN
+			fbSeq.Finish();
+		END_IF
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Homeing" Id="{a56b25bb-fe72-44dc-80b5-637f2fcb4907}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Homeing : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Homeing';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(10);
+	
+	
+10	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(20);	
+
+		
+20	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(30);	
+
+		
+30	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(40);
+
+		
+40	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.NextStep(50);
+
+		
+50	 :	fbSeq.StepDefinition('', T#0S);
+
+		fbSeq.Finish();
+
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Jog" Id="{1d2ff23e-33f0-4a92-b3b2-26e22dd33108}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _Jog : BOOL
+VAR
+	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'Jog';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Halt Axis', T#0S);
+		fbAxisX.Halt();
+		fbAxisY.Halt();	
+		fbSeq.NextStep(10);
+	
+10	 :	fbSeq.StepDefinition('Jog Axis', T#0S);
+	
+		IF bJogX OR bJogY THEN
+			fbAxisX.JogAcc(bJogX AND NOT bJogReverseDirectionX , bJogX AND bJogReverseDirectionX);
+			fbAxisY.JogAcc(bJogY AND NOT bJogReverseDirectionY , bJogY AND bJogReverseDirectionY);
+		ELSE
+			fbSeq.NextStep(20);
+		END_IF		
+		
+20	 :	fbSeq.StepDefinition('Jog Finish', T#0S);
+		fbAxisX.Halt();
+		fbAxisY.Halt();	
+		fbSeq.Finish();
+
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_MoveAbs" Id="{4bfcd30e-7191-4dcc-a300-81025d11d7f1}" FolderPath="Sequences\">
+      <Declaration><![CDATA[METHOD _MoveAbs : BOOL
+VAR
+	stMovAbsParameter			: ST_AxisMoveAbsParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbSeq.Name := 'MoveAbs';
+
+CASE fbSeq.Step OF
+	
+
+0	 :	fbSeq.StepDefinition('Move Axis to Position', T#0S);
+		
+		IF bMoveX THEN
+			stMovAbsParameter.fAcceleration := fAccelerationX;
+			stMovAbsParameter.fDeceleration := fAccelerationX;
+			stMovAbsParameter.fVelocity := fVelocityX;
+			stMovAbsParameter.fPosition := stPosition.fX;
+			fbAxisX.MoveAbsEx(stMovAbsParameter);
+		END_IF
+			
+		IF bMoveY THEN
+			stMovAbsParameter.fAcceleration := fAccelerationY;
+			stMovAbsParameter.fDeceleration := fAccelerationY;
+			stMovAbsParameter.fVelocity := fVelocityY;
+			stMovAbsParameter.fPosition := stPosition.fY;
+			fbAxisY.MoveAbsEx(stMovAbsParameter);
+		END_IF
+		
+		fbSeq.NextStep(20);	
+		
+20	 :	fbSeq.StepDefinition('Axis moving', T#0S);
+		IF (fbAxisX.TargetReached(fToleranceWindow) OR NOT bMoveX) AND (fbAxisY.TargetReached(fToleranceWindow) OR NOT bMoveY) THEN
+			fbSeq.Finish();
+		END_IF
+
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="AmplifierTemp" Id="{a44d240b-0646-4f6d-bf88-e30572090b8f}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual amplifier temp. [°C]
+PROPERTY AmplifierTemp : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{9adf4361-d80a-473b-b4b7-eb470cf7138d}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual amplifier temp. [°C]
+AmplifierTemp := MAX(fbAxisX.AmplifierTemp, fbAxisY.AmplifierTemp);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ChangeTool" Id="{c588bd96-44d3-43fa-8ba5-9bf373d5e2bc}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD ChangeTool : E_OperationResult
+VAR_INPUT
+	ToolDockingNr				: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+ChangeTool := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+
+stPosition := stMaintPosition;
+fVelocityX := fVelocityY := fDefaultVelocity;	
+fAccelerationX := fAccelerationY := fDefaultAcceleration;
+nToolDockingNr := ToolDockingNr;
+bMoveX := TRUE;
+bMoveY := TRUE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdChangeTool);
+
+ChangeTool := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="CurTool" Id="{b0b358e0-e403-4312-a7e4-0b60a25569a2}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY CurTool : INT]]></Declaration>
+      <Get Name="Get" Id="{6479b220-a466-4b93-8696-18abdad3aca2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[CurTool := nCurTooldockingNr;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="FB_init" Id="{e1ed02d3-3c8c-4424-815c-632247250740}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_MatAndToolHandling;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetMovementTime" Id="{c1482001-afc0-4aba-b421-809c696fd43d}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD GetMovementTime : LREAL
+VAR_INPUT
+	DistanceX		: LREAL;
+	DistanceY		: LREAL;
+	VelocityX		: LREAL;
+	AccelerationX	: LREAL;
+	VelocityY		: LREAL;
+	AccelerationY	: LREAL;
+END_VAR
+VAR
+	tmpTimeX		: LREAL;
+	tmpTimeY		: LREAL;
+	
+	tmpTimeB		: LREAL;
+	tmpTimeBB		: LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// X
+tmpTimeB  := VelocityX/AccelerationX;
+tmpTimeBB := 2*SQRT(DistanceX/AccelerationX);
+
+IF tmpTimeBB/2 > tmpTimeB THEN
+	tmpTimeX := DistanceX/VelocityX + VelocityX/AccelerationX;
+ELSE
+	tmpTimeX := tmpTimeBB;
+END_IF
+
+
+// Y
+tmpTimeB  := VelocityY/AccelerationY;
+tmpTimeBB := 2*SQRT(DistanceY/AccelerationY);
+
+IF tmpTimeBB/2 > tmpTimeB THEN
+	tmpTimeY := DistanceY/fVelocityY + VelocityY/AccelerationY;
+ELSE
+	tmpTimeY := tmpTimeBB;
+END_IF
+
+
+GetMovementTime := MAX(tmpTimeX, tmpTimeY)*1.2;	// 20% sicherheit]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Halt" Id="{92f2c6c9-156d-4bca-9b55-fe2aca91bd9b}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Halt : E_OperationResult
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+Halt := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+
+fVelocityX := fVelocityY := fDefaultVelocity;	
+fAccelerationX := fAccelerationY := fDefaultAcceleration;
+bMoveX := FALSE;
+bMoveY := FALSE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdHalt);
+
+Halt := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Homed" Id="{c9d61529-2cd7-4b34-941c-55aca463530f}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Homed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{9737d753-e7f1-459b-b948-78edc9855295}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Homed := fbaxisX.Homed AND fbaxisY.Homed;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Homing" Id="{22980133-2b13-41f4-b814-e48099b58c9b}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Homing : E_OperationResult
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+Homing := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+
+stPosition := stMaintPosition;
+fVelocityX := fVelocityY := fDefaultVelocity;	
+fAccelerationX := fAccelerationY := fDefaultAcceleration;
+bMoveX := TRUE;
+bMoveY := TRUE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdHomeing);
+
+Homing := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogX" Id="{b043ecd2-382c-4f85-8b01-ac75c7b03c3e}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD JogX : E_OperationResult
+VAR_INPUT
+	ReverseDirection					: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+JogX := E_OperationResult.eOperationResult_NOk;
+bInPosition := FALSE;
+
+IF fbSeq.SequenceId <> E_MatAndToolHandlingCmd.cmdJog THEN
+	fbSeq.Start(E_MatAndToolHandlingCmd.cmdJog);
+//	RETURN;
+END_IF
+
+
+bJogReverseDirectionX := ReverseDirection;
+bJogX := TRUE;	
+
+JogX := E_OperationResult.eOperationResult_Ok;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogXStop" Id="{6fe34396-2950-4a93-b24f-960f3bfac0f9}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD JogXStop : E_OperationResult
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+JogXStop := E_OperationResult.eOperationResult_NOk;
+
+bJogX := FALSE;	
+
+JogXStop := E_OperationResult.eOperationResult_Ok;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogY" Id="{c5453b2b-6337-49d6-a443-484ca70fbfe0}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD JogY : E_OperationResult
+VAR_INPUT
+	ReverseDirection					: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+JogY := E_OperationResult.eOperationResult_NOk;
+bInPosition := FALSE;
+
+IF fbSeq.SequenceId <> E_MatAndToolHandlingCmd.cmdJog THEN
+	fbSeq.Start(E_MatAndToolHandlingCmd.cmdJog);
+//	RETURN;
+END_IF
+
+
+bJogReverseDirectionY := ReverseDirection;
+bJogY := TRUE;	
+
+JogY := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogYStop" Id="{f1d239eb-ac84-41a8-8f1e-6767a2a6c9ab}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD JogYStop : E_OperationResult
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+JogYStop := E_OperationResult.eOperationResult_NOk;
+
+bJogY := FALSE;	
+
+JogYStop := E_OperationResult.eOperationResult_Ok;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MaintPos" Id="{7a877f5e-256c-417b-a796-2359094340b8}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MaintPos : E_OperationResult
+VAR_INPUT
+	bXOnly				: BOOL;
+	bYOnly				: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bXOnly THEN
+	MaintPos := MoveAbsX(stMaintPosition.fX,fDefaultVelocity, fDefaultAcceleration);	
+ELSIF bYOnly THEN
+	MaintPos := MoveAbsY(stMaintPosition.fY,fDefaultVelocity, fDefaultAcceleration);
+ELSE
+	MaintPos := MoveAbs(stMaintPosition,fDefaultVelocity, fDefaultAcceleration,fDefaultVelocity, fDefaultAcceleration);
+END_IF
+
+
+// override the calculated Position, Maintpos is independent of Tool
+stPosition := stMaintPosition;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MotorTemp" Id="{c05b9444-a31f-43a7-b77e-03039c6c3f0f}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual motor temp. [°C]
+PROPERTY MotorTemp : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{efeb379c-d6b4-4b78-ba41-237a43755ad5}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual motor temp. [°C]
+MotorTemp := MAX(fbAxisX.MotorTemp,fbAxisY.MotorTemp);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="MoveAbs" Id="{a109d053-4806-4f10-b44b-e30d01f0a7b3}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveAbs : E_OperationResult
+VAR_INPUT
+	Positon					: ST_Coordinate;
+	VelocityX				: LREAL;
+	AccelerationX			: LREAL;
+	VelocityY				: LREAL;
+	AccelerationY			: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveAbs := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+stPosition.fX := Positon.fX + stOffsetMat.fX ;//+ astOffsetDie[nCurTooldockingNr].fX
+stPosition.fY := Positon.fY - afDistanceTooldocking[nCurTooldockingNr] + stOffsetMat.fY; //+ astOffsetDie[nCurTooldockingNr].fY 
+
+// TODO: Check Coordinates if they are in/outside the traversing range
+
+//IF ABS(fbAxisX.ActPos - stPosition.fX) < fToleranceWindow THEN
+//	fVelocityY := MAX(MIN(fMaxVelocityY, VelocityY),fMinVelocityY);	
+//	fAccelerationY := MAX(MIN(fMaxAccelerationY, AccelerationY),fMinAccelerationY);
+//	bMoveX := FALSE;
+//	bMoveY := TRUE;	
+//ELSIF ABS(fbAxisY.ActPos - stPosition.fY) < fToleranceWindow THEN
+//	fVelocityX := MAX(MIN(fMaxVelocityX, VelocityX),fMinVelocityX);	
+//	fAccelerationX := MAX(MIN(fMaxAccelerationX, AccelerationX),fMinAccelerationX);
+//	bMoveX := TRUE;
+//	bMoveY := FALSE;
+//ELSE	
+	fVelocityY := MAX(MIN(fMaxVelocityY, VelocityY),fMinVelocityY);	
+	fAccelerationY := MAX(MIN(fMaxAccelerationY, AccelerationY),fMinAccelerationY);
+	fVelocityX := MAX(MIN(fMaxVelocityX, VelocityX),fMinVelocityX);	
+	fAccelerationX := MAX(MIN(fMaxAccelerationX, AccelerationX),fMinAccelerationX);
+	bMoveX := TRUE;
+	bMoveY := TRUE;
+	
+//END_IF
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdMoveAbs);
+
+MoveAbs := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAbsX" Id="{c8d45f91-e2c3-4159-a4f7-a6628b762024}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveAbsX : E_OperationResult
+VAR_INPUT
+	Positon					: REAL;
+	Velocity				: LREAL;
+	Acceleration			: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveAbsX := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+stPosition := THIS^.Position;
+stPosition.fX := Positon;
+fVelocityX := MAX(MIN(fMaxVelocityX, Velocity),fMinVelocityX);	
+fAccelerationX := MAX(MIN(fMaxAccelerationX, Acceleration),fMinAccelerationX);
+bMoveX := TRUE;
+bMoveY := FALSE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdMoveAbs);
+
+MoveAbsX := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAbsY" Id="{76efc827-2a40-45c4-92dc-25f66feab386}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveAbsY : E_OperationResult
+VAR_INPUT
+	Positon					: REAL;
+	Velocity				: LREAL;
+	Acceleration			: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveAbsY := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+stPosition := THIS^.Position;
+stPosition.fY := Positon;
+fVelocityY := MAX(MIN(fMaxVelocityY, Velocity),fMinVelocityY);	
+fAccelerationY := MAX(MIN(fMaxAccelerationY, Acceleration),fMinAccelerationY);
+bMoveX := FALSE;
+bMoveY := TRUE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdMoveAbs);
+
+MoveAbsY := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveRelX" Id="{ecaed027-789b-4c6c-b40f-ac25d95aeeb5}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveRelX : E_OperationResult
+VAR_INPUT
+	Distance				: LREAL;
+	Velocity				: LREAL;
+	Acceleration			: LREAL;
+END_VAR
+
+VAR
+	tmpPos					: ST_Coordinate;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveRelX := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+tmpPos := Position;
+tmpPos.fX := MAX(fbAxisX.LimitNeg, MIN(fbAxisX.LimitPos, tmpPos.fX + Distance));
+
+stPosition := tmpPos;
+fVelocityX := MAX(MIN(fMaxVelocityX, Velocity),fMinVelocityX);	
+fAccelerationX := MAX(MIN(fMaxAccelerationX, Acceleration),fMinAccelerationX);
+bMoveX := TRUE;
+bMoveY := FALSE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdMoveAbs);
+
+MoveRelX := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveRelY" Id="{732ef1f1-c1c0-4ace-98ba-e2ffc7fb86ac}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD MoveRelY : E_OperationResult
+VAR_INPUT
+	Distance				: LREAL;
+	Velocity				: LREAL;
+	Acceleration			: LREAL;
+END_VAR
+
+VAR
+	tmpPos					: ST_Coordinate;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// init result pessimistic
+MoveRelY := E_OperationResult.eOperationResult_NOk;
+
+bInPosition := FALSE;
+
+tmpPos := Position;
+tmpPos.fY := MAX(fbAxisY.LimitNeg, MIN(fbAxisY.LimitPos, tmpPos.fY + Distance));;
+
+stPosition := tmpPos;
+fVelocityY := MAX(MIN(fMaxVelocityY, Velocity),fMinVelocityY);	
+fAccelerationY := MAX(MIN(fMaxAccelerationY, Acceleration),fMinAccelerationY);
+bMoveX := FALSE;
+bMoveY := TRUE;
+
+fbSeq.Start(E_MatAndToolHandlingCmd.cmdMoveAbs);
+
+MoveRelY := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Moving" Id="{0dce4285-d95e-436e-bd27-e2f7edcbe838}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Moving : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{98b10ba6-9d5b-4af6-bb57-d493e47fccec}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Moving := fbAxisX.Moving OR fbAxisY.Moving;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="NotMoving" Id="{1e706dca-279f-4a63-a593-040719d331d7}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY NotMoving : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{b56bf59e-892e-4223-a22a-2ec8f7c89428}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[NotMoving := NOT Moving;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Override" Id="{75fcc446-a1e6-400d-9052-f66c52e0328b}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{b80ea9cd-c316-4a72-96ea-0f6958434ef7}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Override := MAX(fbAxisX.Override, fbAxisY.Override);]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{95c2e620-6254-4c8c-876f-3e0b9afadc37}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbAxisX.Override := Override;
+fbAxisY.Override := Override;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Position" Id="{6e649e63-b55e-47e6-93ad-e3a6abdb271d}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Position : ST_Coordinate]]></Declaration>
+      <Get Name="Get" Id="{91c845b6-a1d7-4020-ba3a-e0dc9c3c4c4b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Position.fX := fbAxisX.Position;
+Position.fY := fbAxisY.Position;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Ready" Id="{927ed93f-f291-463e-8286-93bfa26d321a}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Ready : BOOL]]></Declaration>
+      <Get Name="Get" Id="{50cac311-dfaa-42a0-b252-f4491661bb2f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Ready := fbAxisX.MotionState <> MC_AXISSTATE_DISABLED AND fbAxisY.MotionState <> MC_AXISSTATE_DISABLED;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{6d37851e-e615-43b8-b8ff-783e7579ef72}">
+      <Declaration><![CDATA[/// Reset component logic
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+fbAxisY.Reset();
+fbAxisX.Reset();
+
+fbSeq.Init();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{c9018ee7-bbca-46a8-be5f-0c5efcbdc5bc}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// run Base Logic
+Run := SUPER^.Run();
+
+IF __ISVALIDREF(refEnable) THEN
+	bEnable := refEnable;
+END_IF
+
+// run Axis Driver
+fbAxisX.Run();
+fbAxisX.Enable := bEnable;
+fbAxisX.EnablePos := bEnable;
+fbAxisX.EnableNeg := bEnable;
+
+fbAxisY.Run();
+fbAxisY.Enable := bEnable;
+fbAxisY.EnablePos := bEnable;
+fbAxisY.EnableNeg := bEnable;
+
+// run Cylinder Driver
+fbToolSelector.Run();
+fbToolSelector.SafetyOk := bEnable;
+fbToolSelector.bEnableHp := bEnable;
+fbToolSelector.bEnableWp := bEnable;
+
+
+// run Sequences
+fbSeq.Enable := TRUE;
+fbSeq.Base(FALSE, FALSE);
+CASE fbSeq.SequenceId OF	
+	E_MatAndToolHandlingCmd.cmdMoveAbs:			_MoveAbs();
+	E_MatAndToolHandlingCmd.cmdHalt:			_Halt();	
+	E_MatAndToolHandlingCmd.cmdChangeTool:		_ChangeTool();	
+	E_MatAndToolHandlingCmd.cmdJog:				_Jog();
+	E_MatAndToolHandlingCmd.cmdHomeing:			_Homeing();
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Setup" Id="{f607b703-6908-4869-8c11-943de5cbe8eb}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD Setup : BOOL
+VAR_INPUT
+	eAxis_X					: E_Axis;
+	eAxis_Y					: E_Axis;
+	eToolSelector		    : E_Cylinder;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbAxisX.Name := 'X-Axis';
+fbAxisX.SetAxisReference(COMP.astAxisRef[eAxis_X], COMP.astAxisIO[eAxis_X].stIn, COMP.astAxisIO[eAxis_X].stOut);
+fbAxisX.AxisType := E_AxisType.AX5xxx;
+fbAxisX.DefaultParameter.stMovAbsPrm.fVelocity := 30;
+fbAxisX.Active := TRUE;
+fbAxisX.Override := 100;
+fbAxisX.DefaultParameter.stJogAccPrm.fFastSpeed := 240;
+fbAxisX.DefaultParameter.stJogAccPrm.fSlowSpeed := 10;
+fbAxisX.DefaultParameter.stJogAccPrm.tAccTime := T#5S;
+fbAxisX.SetSecondPosFeedback(3640, 3.9630466037326388888888888888889E-5);
+fbAxisX.EnableLimitSensor:= FALSE;	
+fbAxisX.LimitNeg := 10;
+fbAxisX.LimitPos := 4070;
+
+fbAxisY.Name := 'Y-Axis';
+fbAxisY.SetAxisReference(COMP.astAxisRef[eAxis_Y], COMP.astAxisIO[eAxis_Y].stIn, COMP.astAxisIO[eAxis_Y].stOut);
+fbAxisY.AxisType := E_AxisType.AX5xxx;
+fbAxisY.DefaultParameter.stMovAbsPrm.fVelocity := 30;
+fbAxisY.Active := TRUE;
+fbAxisX.Override := 100;
+fbAxisY.DefaultParameter.stJogAccPrm.fFastSpeed := 240;
+fbAxisY.DefaultParameter.stJogAccPrm.fSlowSpeed := 10;
+fbAxisY.DefaultParameter.stJogAccPrm.tAccTime := T#5S;
+fbAxisY.EnableLimitSensor:= FALSE;	
+fbAxisY.LimitNeg := 5;
+fbAxisY.LimitPos := 790;
+
+fbToolSelector.Name := 'Zylinder';
+fbToolSelector.SetIoReference(aStCylinderIO[eToolSelector].stIn, aStCylinderIO[eToolSelector].stOut);
+fbToolSelector.EnableHpSensor := TRUE;
+fbToolSelector.EnableWpSensor := TRUE;
+//fbToolSelector.SetImpulseTime := 
+//fbToolSelector.PositionValidationTime :=
+
+
+fMaxVelocityX			:= 4700;
+fMinVelocityX			:= 10;
+fMaxAccelerationX		:= 10000;
+fMinAccelerationX		:= 0;
+fMaxVelocityY			:= 3200;
+fMinVelocityY			:= 10;
+fMaxAccelerationY		:= 10000;
+fMinAccelerationY		:= 0;
+fDefaultVelocity		:= 100;
+fDefaultAcceleration	:= 0;
+fToleranceWindow		:= 0.5;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupEnable" Id="{d80a8f5a-3eca-4da0-a90b-4cfeb95f54da}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupEnable : BOOL
+
+VAR_IN_OUT
+	bEnable					: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[refEnable REF= bEnable;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupMaintPos" Id="{484665e7-c6bc-44df-87b6-cf024c838db6}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupMaintPos : BOOL
+VAR_INPUT
+	MaintPosition		: ST_Coordinate;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stMaintPosition	:=  MaintPosition;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupMat" Id="{04eaa570-e65e-4393-8b32-1de476ed9a3b}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupMat : BOOL
+VAR_INPUT
+	Offset			: ST_Coordinate;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stOffsetMat:= Offset;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupObstacle" Id="{f48a94ac-b2e3-40d6-b8c7-dbbba451e3d3}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupObstacle : BOOL
+VAR_IN_OUT
+	Obstacle			: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[refObstacle REF= Obstacle;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupToolDistance" Id="{cdc79598-c0f1-4f99-bf24-e142dee8c62c}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupToolDistance : BOOL
+VAR_INPUT
+	fDistanceToolDock1		: REAL;
+	fDistanceToolDock2		: REAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[afDistanceTooldocking[1]	:=  fDistanceToolDock1;
+afDistanceTooldocking[2]	:=  fDistanceToolDock2;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetupToolholder" Id="{a886c911-57a8-430d-9d73-4c723d008686}" FolderPath="Setup\">
+      <Declaration><![CDATA[METHOD SetupToolholder : BOOL
+VAR_INPUT
+	DockingNr		: INT;
+	fDieOffsetX		: REAL;
+	fDieOffsetY		: REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[astOffsetDie[DockingNr].fX := fDieOffsetX;
+astOffsetDie[DockingNr].fY := fDieOffsetY;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="TargetReached" Id="{c5d24c72-4827-4293-b4ba-08994b17ca63}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'variable'}
+PROPERTY TargetReached : BOOL]]></Declaration>
+      <Get Name="Get" Id="{7e5d009f-904a-4223-85e4-a6deb5534aa8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TargetReached := fbAxisX.TargetReached(fToleranceWindow) AND fbAxisY.TargetReached(fToleranceWindow);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ToolChanged" Id="{e7e4f597-ca3b-4956-9ee0-8f39af4943af}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY ToolChanged : BOOL]]></Declaration>
+      <Get Name="Get" Id="{79c818fe-3899-49d4-bc93-802802dd64ea}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ToolChanged := nCurTooldockingNr = nToolDockingNr;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="TorqueLimitX" Id="{9334d840-cb87-4b0a-85ec-7c5362e76f58}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY TorqueLimitX : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{3f5d3134-733e-45d2-896e-ac35c05d70bf}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+TorqueLimitX := fbAxisX.TorqueLimit;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{d679d6d9-7094-4bba-aa53-1856d247e4a2}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbAxisX.TorqueLimit := TorqueLimitX;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="TorqueLimitY" Id="{1a03d889-f029-475b-80d4-16f537f3e5c7}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY TorqueLimitY : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{76ef9422-533b-409c-8866-aad1e2c4b334}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+TorqueLimitY := fbAxisY.TorqueLimit;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{4d958039-0647-46cc-87e4-bc4ba3ba1de8}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbAxisY.TorqueLimit := TorqueLimitY;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <LineIds Name="FB_MatAndToolHandling">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling._ChangeTool">
+      <LineId Id="6" Count="4" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="56" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="41" Count="4" />
+      <LineId Id="65" Count="2" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling._Halt">
+      <LineId Id="6" Count="4" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="55" Count="5" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling._Homeing">
+      <LineId Id="6" Count="4" />
+      <LineId Id="40" Count="12" />
+      <LineId Id="24" Count="15" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling._Jog">
+      <LineId Id="6" Count="4" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="90" Count="1" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling._MoveAbs">
+      <LineId Id="6" Count="5" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.AmplifierTemp.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.ChangeTool">
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.CurTool.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.GetMovementTime">
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="30" Count="7" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="38" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Halt">
+      <LineId Id="19" Count="0" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Homed.Get">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Homing">
+      <LineId Id="19" Count="0" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.JogX">
+      <LineId Id="21" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="30" Count="2" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.JogXStop">
+      <LineId Id="6" Count="1" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="19" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.JogY">
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="27" Count="2" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="32" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.JogYStop">
+      <LineId Id="6" Count="1" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="19" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MaintPos">
+      <LineId Id="3" Count="9" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MotorTemp.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MoveAbs">
+      <LineId Id="20" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="61" Count="1" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="57" Count="1" />
+      <LineId Id="47" Count="1" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="51" Count="1" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MoveAbsX">
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MoveAbsY">
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MoveRelX">
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="40" Count="2" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.MoveRelY">
+      <LineId Id="22" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="44" Count="2" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Moving.Get">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.NotMoving.Get">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Override.Get">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Override.Set">
+      <LineId Id="4" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Position.Get">
+      <LineId Id="2" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Ready.Get">
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Reset">
+      <LineId Id="9" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Run">
+      <LineId Id="5" Count="1" />
+      <LineId Id="45" Count="3" />
+      <LineId Id="7" Count="5" />
+      <LineId Id="22" Count="2" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="15" Count="4" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.Setup">
+      <LineId Id="92" Count="46" />
+      <LineId Id="48" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.SetupEnable">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.SetupMaintPos">
+      <LineId Id="77" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.SetupMat">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.SetupObstacle">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.SetupToolDistance">
+      <LineId Id="50" Count="1" />
+      <LineId Id="48" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.SetupToolholder">
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.TargetReached.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.ToolChanged.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.TorqueLimitX.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.TorqueLimitX.Set">
+      <LineId Id="3" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.TorqueLimitY.Get">
+      <LineId Id="3" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_MatAndToolHandling.TorqueLimitY.Set">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

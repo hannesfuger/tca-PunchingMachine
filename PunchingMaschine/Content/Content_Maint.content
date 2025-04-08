@@ -1,0 +1,35 @@
+<div id="Content_Maint" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="1720" data-tchmi-height="1080" data-tchmi-zindex="1">
+
+<div id="Page_Maint_1" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="1080" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-target-user-control="Controls/Pages/Page_Maint.usercontrol" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1720" data-tchmi-width-unit="px" data-tchmi-zindex="1" data-tchmi-stconfig="%s%PLC1.GVL_VISU.stMachineConfig%/s%" data-tchmi-stmaintcmd="%s%PLC1.GVL_VISU.stMaintCmds%/s%" data-tchmi-stmaintparam="%s%PLC1.GVL_VISU.stMaintParam%/s%" data-tchmi-stmaintinfo="%s%PLC1.GVL_VISU.stMaintInfo%/s%">
+
+</div>
+
+<div id="TcHmiRectangle_14" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="1080" data-tchmi-height-unit="px" data-tchmi-left="330" data-tchmi-left-unit="px" data-tchmi-stroke-thickness="1" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1390" data-tchmi-width-unit="px" data-tchmi-zindex="0">
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-stroke-color" type="application/json">
+{
+  "color": "None"
+}
+</script>
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-background-color" type="application/json">
+{
+  "color": "rgba(0, 0, 0, 0)"
+}
+</script>
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(241, 241, 241, 1)"
+}
+</script>
+</div>
+
+</div>

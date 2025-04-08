@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_MaintInfo" Id="{e7816213-d947-4787-9859-594fd93a24f1}">
+    <Declaration><![CDATA[TYPE ST_MaintInfo :
+STRUCT	
+	// X - Axis
+	bXHomed					: BOOL;
+	bXError					: BOOL;
+	bXMoving				: BOOL;
+	fXPosition				: LREAL;
+	fXTemp					: LREAL;
+	fXMotorTemp				: LREAL;	
+	
+	// Y - Axis
+	bYHomed					: BOOL;
+	bYError					: BOOL;
+	bYMoving				: BOOL;
+	fYPosition				: LREAL;
+	fYTemp					: LREAL;
+	fYMotorTemp				: LREAL;
+	
+	// Punch - Axis
+	bPunchHomed				: BOOL;
+	bPunchError				: BOOL;
+	bPunchMoving			: BOOL;
+	fPunchPosition			: LREAL;	
+	fPunchTemp				: LREAL;
+	fPunchMotorTemp			: LREAL;
+	nPunchCount				: UDINT;
+	
+	// ToolChanger
+	bToolError				: BOOL;
+	bToolChanged			: BOOL;
+	nToolSelect				: INT;
+	
+	// Machine 
+	bSequenceError			: BOOL;
+	bSafetyOk				: BOOL;	
+	bEmergency				: BOOL;
+	bSafetyDoor				: BOOL;
+	nStep					: INT;
+	nSequence				: INT;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

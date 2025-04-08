@@ -1,0 +1,19 @@
+{
+    "CHUNKING_OF_LARGE_REQUESTS": false,
+    "FILTER": {},
+    "RUNTIMES": {
+        "PLC1": {
+            "ENABLED": true,
+            "NETID": "192.168.0.154.1.1",
+            "PORT": 852,
+            "SYMBOLS": {}
+        },
+        "TcSysService": {
+            "ENABLED": false,
+            "NETID": "127.0.0.1.1.1",
+            "PORT": 10000,
+            "SYMBOLS": {}
+        }
+    },
+    "TIMEOUT": "PT1S"
+}

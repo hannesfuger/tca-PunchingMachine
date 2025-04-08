@@ -1,0 +1,37 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-sttool",
+      "displayName": "stTool",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_Tool",
+      "category": "",
+      "description": "",
+      "defaultValue": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stTool",
+      "propertySetterName": "setStTool",
+      "propertyGetterName": "getStTool"
+    },
+    {
+      "name": "data-tchmi-onvaluechanged",
+      "displayName": "onValueChanged",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "onValueChanged",
+      "propertySetterName": "setOnValueChanged",
+      "propertyGetterName": "getOnValueChanged"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

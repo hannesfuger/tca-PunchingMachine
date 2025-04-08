@@ -1,0 +1,818 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_Mat" Id="{9d97d1e4-de83-49e8-ad58-df2ce49ba8b3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Mat EXTENDS FB_Componentbase
+
+VAR
+	// Reference of Mat
+	stMat						: ST_Mat;
+	
+	// Coordinates of Mat
+	nRunNr						: UINT;
+	eCoordinatesSortState		: E_CoordinatesSortState;
+	stCoordinates				: ARRAY[0..MATHOLES_COUNT] OF ST_Coordinate;
+	nCorrdinatesCount			: UDINT;
+
+END_VAR	
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Run" Id="{ee0a9fef-266c-46d2-bd3e-145d8d30413c}" />
+    <Folder Name="Utilities" Id="{9904fbd7-fdcb-4684-867f-e37fc173f66a}" />
+    <Method Name="Cmp_Coordinates" Id="{fa8d2a15-28b6-4673-b982-3d92fb9c837a}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD Cmp_Coordinates : INT
+VAR_INPUT
+	ptFirst				: POINTER TO ST_Coordinate;
+	ptSecond			: POINTER TO ST_Coordinate;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ptFirst = 0 OR ptSecond = 0 THEN
+	RETURN;
+END_IF
+
+Cmp_Coordinates := 0;
+
+IF ptFirst^.fX > ptSecond^.fX THEN
+	Cmp_Coordinates := 1;
+	
+ELSIF ptFirst^.fX < ptSecond^.fX THEN
+	Cmp_Coordinates := -1;	
+	
+ELSIF ptFirst^.fX = ptSecond^.fX THEN
+	IF ptFirst^.fY > ptSecond^.fY THEN
+		Cmp_Coordinates := 1;	
+		
+	ELSIF ptFirst^.fY < ptSecond^.fY THEN
+		Cmp_Coordinates := -1;	
+		
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ConvertRun" Id="{44c3a48c-71b8-4cd7-934d-b54580e80dac}" FolderPath="Run\">
+      <Declaration><![CDATA[METHOD ConvertRun : E_OperationResult
+VAR_INPUT
+	Run						: UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// CHECK REFERENCES
+ConvertRun := E_OperationResult.eOperationResult_NOk;
+
+// check mat and Run definitions 
+IF NOT stMat.astRuns[Run].bActive THEN
+	RETURN;
+END_IF
+
+nRunNr := Run;
+
+/// RESET OLD VALUES
+MEMSET(ADR(stCoordinates), 0, SIZEOF(stCoordinates));
+nCorrdinatesCount := HolesOfRun(Run, ADR(stCoordinates));
+eCoordinatesSortState := E_CoordinatesSortState.eCoordinatesSortState_unsorted;
+
+IF nCorrdinatesCount > 0 THEN
+	ConvertRun := E_OperationResult.eOperationResult_Ok;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Count_HolesOfElement" Id="{101d273f-bb96-4815-8c03-a837b4bf04e9}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD Count_HolesOfElement :  UDINT
+VAR_INPUT
+	Run						: UINT;
+	Element					: UINT;
+END_VAR
+
+VAR
+	tmpRun					: REFERENCE TO ST_MatRun;
+	tmpElement				: REFERENCE TO ST_Element;
+	
+	tmpCount				: UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// GET ELEMENT CHECK REFERENZES
+//IF NOT __ISVALIDREF(refMat) THEN	RETURN;	END_IF 
+tmpRun REF= stMat.astRuns[Run];
+IF NOT __ISVALIDREF(tmpRun) THEN	RETURN;	END_IF
+tmpElement REF= tmpRun.astElements[Element];
+IF NOT __ISVALIDREF(tmpElement) THEN	RETURN;	END_IF
+
+/// CALCULATE HOLES
+
+IF NOT tmpElement.bActive THEN	
+	Count_HolesOfElement := 0;
+	RETURN;	
+END_IF
+
+tmpCount :=  tmpElement.nCountX * tmpElement.nCountY;
+ 
+IF tmpElement.bMirroring THEN
+	tmpCount := tmpCount*2;
+END_IF
+
+Count_HolesOfElement := tmpCount;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Count_HolesOfRun" Id="{bf6ffb94-5d9f-4e4e-be83-72f597563304}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD Count_HolesOfRun :  UDINT
+VAR_IN_OUT
+	Run						: UINT;
+END_VAR
+
+VAR
+	tmpCount				: UDINT;
+	ni						: UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// CHECK REFERENZES
+//IF NOT __ISVALIDREF(refMat) THEN	RETURN;	END_IF 
+
+IF NOT stMat.astRuns[Run].bActive THEN
+	Count_HolesOfRun := 0;	
+	RETURN;
+END_IF
+
+FOR ni := 0 TO MATELEMENTS_COUNT DO
+	tmpCount := tmpCount + Count_HolesOfElement(Run, ni);
+END_FOR
+
+Count_HolesOfRun := tmpCount;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{ba371943-0a0d-49b5-8d3b-a205885ae3be}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_Mat;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetCoordinate" Id="{872b28fc-43e1-4aa3-b1b5-133a892e91be}" FolderPath="Run\">
+      <Declaration><![CDATA[METHOD GetCoordinate : E_OperationResult
+VAR_INPUT
+	RunNr					: UINT;
+	IndexNr					: UDINT;
+	ptCoordinate			: POINTER TO ST_Coordinate;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GetCoordinate := E_OperationResult.eOperationResult_NOk;
+
+IF IndexNr > nCorrdinatesCount THEN
+	RETURN;
+END_IF
+
+IF eCoordinatesSortState =  E_CoordinatesSortState.eCoordinatesSortState_unsorted OR
+	eCoordinatesSortState =  E_CoordinatesSortState.eCoordinatesSortState_undefined THEN
+	RETURN;
+END_IF
+
+IF RunNr <> nRunNr THEN
+	RETURN;
+END_IF
+
+ptCoordinate^ := stCoordinates[IndexNr];
+
+GetCoordinate := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="HolesOfElement" Id="{149c7512-766f-464b-9d57-dc7aaeb1f786}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD HolesOfElement : UDINT
+VAR_INPUT
+	Run						: UINT;
+	Element					: UINT;
+	ptArray					: POINTER TO ARRAY[0..MATHOLES_COUNT] OF ST_Coordinate;
+END_VAR
+
+VAR
+	tmpRun					: REFERENCE TO ST_MatRun;
+	tmpElement				: REFERENCE TO ST_Element;
+	tmptool					: REFERENCE TO ST_Tool;
+	tmptoolholder			: REFERENCE TO ST_Toolholder;
+	
+	tmpCount				: UDINT;
+	tmpX_Pos				: REAL;
+	tmpY_Pos				: REAL;
+	tmpX_PosFirst			: REAL;
+	tmpY_PosFirst			: REAL;
+	
+	tmpArrayIdx				: UINT;
+	ni, nj					: UINT;
+	
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ptArray = 0 THEN
+	RETURN;
+END_IF
+
+MEMSet(ptArray,0,SIZEOF(POINTER TO ARRAY[0..MATHOLES_COUNT] OF ST_Coordinate));
+
+/// DEFINE VARIABLES, CHECK REFERENZES	
+//IF NOT __ISVALIDREF(refMat) THEN	RETURN;	END_IF 
+
+tmpRun REF= stMat.astRuns[Run];
+IF NOT __ISVALIDREF(tmpRun) THEN	RETURN;	END_IF
+
+tmpElement REF= tmpRun.astElements[Element];
+IF NOT __ISVALIDREF(tmpElement) THEN	RETURN;	END_IF
+
+tmpTool REF= tmpRun.stTool;
+tmpToolholder REF= tmpRun.stToolHolder;
+IF NOT __ISVALIDREF(tmpTool) OR NOT __ISVALIDREF(tmpToolholder)	THEN	RETURN;	END_IF
+
+HolesOfElement := tmpCount := Count_HolesOfElement(Run, Element);
+IF tmpCount <= 0 OR tmpCount > MATHOLES_COUNT THEN	RETURN;	END_IF
+
+/// SET ZERO IF NOT MULTIDIE
+IF NOT tmpToolholder.bMultiDie THEN
+	tmpToolholder.nDieCount := 0;
+END_IF	
+
+/// CALCULATE COORDINATES OF FIRST HOLE
+IF tmpElement.bCentering THEN
+	tmpX_PosFirst := tmpElement.fX_Pos;
+	tmpY_PosFirst := (stMat.fWidth - (tmpToolholder.fDie_Offset * (tmpToolholder.nDieCount - 1) + tmpElement.fDistanceY * (tmpElement.nCountY - 1))) / 2;
+ELSE           
+	tmpX_PosFirst := tmpElement.fX_Pos;
+	tmpY_PosFirst:= tmpElement.fY_Pos;
+END_IF
+
+
+/// CALCULATE ARRAY
+tmpArrayIdx := 0;
+
+FOR ni := 0 TO tmpElement.nCountX-1 DO
+	FOR nj:= 0 TO tmpElement.nCountY-1 DO
+		
+		CASE tmpElement.eOrigin OF
+			
+			E_ElementOrigin.eElementOrigin_ButtomRight:
+				tmpX_Pos := tmpX_PosFirst + ni*tmpElement.fDistanceX;	
+				tmpY_Pos := tmpY_PosFirst + nj*tmpElement.fDistanceY;		
+		
+			E_ElementOrigin.eElementOrigin_ButtomLeft:	
+				tmpX_Pos := stMat.fLenght - (tmpX_PosFirst + ni*tmpElement.fDistanceX);	
+				tmpY_Pos := tmpY_PosFirst + nj*tmpElement.fDistanceY;		
+					
+			E_ElementOrigin.eElementOrigin_TopRight:
+				tmpX_Pos := tmpX_PosFirst + ni*tmpElement.fDistanceX;	
+				tmpY_Pos := stMat.fWidth - (tmpY_PosFirst + nj*tmpElement.fDistanceY) - (tmpToolholder.fDie_Offset * (tmpToolholder.nDieCount - 1)) ;	
+					
+			E_ElementOrigin.eElementOrigin_TopLeft:
+				tmpX_Pos := stMat.fLenght - (tmpX_PosFirst + ni*tmpElement.fDistanceX);	
+				tmpY_Pos := stMat.fWidth - (tmpY_PosFirst + nj*tmpElement.fDistanceY) - (tmpToolholder.fDie_Offset * (tmpToolholder.nDieCount - 1)) ;	
+		
+		END_CASE
+		
+		/// ADD OFFEST OF TOOLHOLDER
+		ptArray^[tmpArrayIdx].fX := tmpX_Pos + tmpToolholder.fX_Offset;
+		ptArray^[tmpArrayIdx].fY := tmpY_Pos + tmpToolholder.fY_Offset;		
+		tmpArrayIdx := tmpArrayIdx + 1;		
+		
+	END_FOR
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="HolesOfRun" Id="{840f9061-ca31-4b2c-92c3-4b334bfc72aa}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD HolesOfRun : UDINT
+VAR_INPUT
+	Run						: UINT;
+	ptArray					: POINTER TO ARRAY[0..MATHOLES_COUNT] OF ST_Coordinate;
+END_VAR
+
+VAR
+	tmpCount				: UDINT;
+	tmpDest					: POINTER TO ARRAY[0..MATHOLES_COUNT] OF ST_Coordinate;
+	ni						: UINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF ptArray = 0 THEN
+	RETURN;
+END_IF
+
+MEMSet(ptArray,0,SIZEOF(POINTER TO ARRAY[0..MATHOLES_COUNT] OF ST_Coordinate));
+
+/// DEFINE VARIABLES, CHECK REFERENZES
+//IF NOT __ISVALIDREF(refMat) THEN	RETURN;	END_IF 
+
+HolesOfRun := tmpCount := Count_HolesOfRun(Run);
+IF tmpCount <= 0 OR tmpCount > MATHOLES_COUNT THEN	RETURN;	END_IF
+
+/// COPY ELEMENTS IN ARRAY
+tmpCount := 0;
+tmpDest := ptArray;
+
+FOR ni := 0 TO MATELEMENTS_COUNT DO
+	tmpCount := HolesOfElement(Run, ni, tmpDest);
+	tmpDest := tmpDest + SIZEOF(ST_Coordinate)*tmpCount;
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LoadMat" Id="{284fd578-ffa0-4bed-9a61-4479ec9cc9bb}">
+      <Declaration><![CDATA[METHOD LoadMat
+VAR_IN_OUT
+	Mat						: ST_Mat;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nRunNr:= 0;
+MEMSET(ADR(stCoordinates), 0, SIZEOF(stCoordinates));
+eCoordinatesSortState := E_CoordinatesSortState.eCoordinatesSortState_undefined;
+stMat := Mat;
+nCorrdinatesCount := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Mat" Id="{9a7c0f62-de47-4adf-b432-e3c1b64bfd87}">
+      <Declaration><![CDATA[PROPERTY Mat : REFERENCE TO ST_Mat]]></Declaration>
+      <Get Name="Get" Id="{4824e087-7292-47ef-b4c2-e7f8417a1090}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Mat REF= stMat;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{a48b5423-df5e-417d-8994-551c6d7c578b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[stMat := Mat;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MaxDistanceX" Id="{4f8fef62-a7fe-41d6-a8da-de6cd49ab67f}" FolderPath="Run\">
+      <Declaration><![CDATA[PROPERTY MaxDistanceX : LREAL]]></Declaration>
+      <Get Name="Get" Id="{fa56c66b-fe50-455b-92b9-4b51368aa528}">
+        <Declaration><![CDATA[VAR
+	ni				: UDINT;
+	tmpDistance		: LREAL;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF eCoordinatesSortState <> E_CoordinatesSortState.eCoordinatesSortState_resorted_v1 THEN
+	MaxDistanceX := 0;
+	RETURN;
+END_IF
+
+tmpDistance := 0;
+
+FOR ni:= 0 TO nCorrdinatesCount-2 DO
+	tmpDistance := MAX(tmpDistance, ABS(stCoordinates[ni].fX - stCoordinates[ni+1].fX));
+END_FOR
+
+MaxDistanceX := tmpDistance;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MaxDistanceY" Id="{53aa8c16-7f86-463e-9719-17d491a9c9d1}" FolderPath="Run\">
+      <Declaration><![CDATA[PROPERTY MaxDistanceY : LREAL]]></Declaration>
+      <Get Name="Get" Id="{50d9f72a-5225-4d94-883f-ff23fefc28b4}">
+        <Declaration><![CDATA[VAR
+	ni				: UDINT;
+	tmpDistance		: LREAL;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF eCoordinatesSortState <> E_CoordinatesSortState.eCoordinatesSortState_resorted_v1 THEN
+	MaxDistanceY := 0;
+	RETURN;
+END_IF
+
+tmpDistance := 0;
+
+FOR ni:= 0 TO nCorrdinatesCount-2 DO
+	tmpDistance := MAX(tmpDistance, ABS(stCoordinates[ni].fY - stCoordinates[ni+1].fY));
+END_FOR
+
+MaxDistanceY := tmpDistance;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{f8736791-0c2e-4ad9-bd30-1a1d795ca2b4}">
+      <Declaration><![CDATA[/// Reset component logic
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+nRunNr:= 0;
+MEMSET(ADR(stCoordinates), 0, SIZEOF(stCoordinates));
+eCoordinatesSortState := E_CoordinatesSortState.eCoordinatesSortState_undefined;
+nCorrdinatesCount := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ResortCoordinates" Id="{f0f5a554-33b5-4649-b18f-b06b7cd532b9}" FolderPath="Run\">
+      <Declaration><![CDATA[METHOD ResortCoordinates : E_OperationResult
+VAR_INPUT
+	ResortVersion		 	: E_CoordinatesSortState;
+END_VAR
+
+VAR
+	fTmpX					: REAL;
+	
+	bResort					: BOOL;
+	nStartIdx				: UDINT;
+	nEndIdx					: UDINT;
+	
+	ni, nj					: UDINT;
+END_VAR
+
+VAR_INST	
+	tmp						: ST_Coordinate;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ResortCoordinates := E_OperationResult.eOperationResult_NOk;
+IF nCorrdinatesCount <= 0 THEN
+	RETURN;
+END_IF
+
+fTmpX := stCoordinates[0].fX;
+nStartIdx := 0;
+bResort := FALSE;
+nEndIdx := 0;
+
+FOR ni:= 0 TO nCorrdinatesCount-1 DO
+
+	IF ni = nCorrdinatesCount-1 THEN	// letzte Element
+		nEndIdx := ni;			
+	ELSIF fTmpX = stCoordinates[ni].fX THEN
+		CONTINUE;	
+	ELSE
+		nEndIdx := ni-1;	
+	END_IF
+	
+	IF bResort THEN	
+		FOR nj:= 0 TO ((nEndIdx-nStartIdx)/2) DO
+			tmp := stCoordinates[nEndIdx - nj];
+			stCoordinates[nEndIdx - nj] := stCoordinates[nStartIdx + nj];
+			stCoordinates[nStartIdx + nj] := tmp;	
+		END_FOR	
+		bResort := FALSE;
+	ELSE
+		bResort := TRUE;	
+	END_IF
+	
+	fTmpX := stCoordinates[ni].fX;
+	nStartIdx := ni;
+
+END_FOR
+
+ResortCoordinates := E_OperationResult.eOperationResult_Ok;
+eCoordinatesSortState := E_CoordinatesSortState.eCoordinatesSortState_resorted_v1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{d94add3c-04f4-4a07-af55-19a32da517e3}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SortRun" Id="{3820c84b-e656-42ac-b16b-905bc56f331f}" FolderPath="Run\">
+      <Declaration><![CDATA[METHOD SortRun : E_OperationResult
+VAR_INPUT
+	Run						: UINT;
+END_VAR
+VAR
+	stack_count: UINT;					(* Laufvariable Stack*)
+	stack: ARRAY[1..4096] OF UDINT;		(* Stackgröße~ 1,6*Log(n)/log(2) *)
+										(* Stackgröße 32 => ~1 Mio Elemente *)
+										(* Stackgröße auf 64 erhöht da sortierfehler aufgetreten sind *)
+	links: UDINT;						(* Anfangselement des Arrays *)
+	rechts: UDINT;						(* Endelement des Arrays *)
+	
+	i: UDINT;							(* Laufvariable1 *)
+	j: UDINT;							(* Laufvariable2 *)
+	ende_innen: BOOL;					(* Ende innere Schleife *)
+	ende_aussen: BOOL;					(* Ende äußere Schleife *)
+	
+END_VAR
+VAR_INST
+	pivot					: ST_Coordinate;				(* temporärer Schwellwert für Tauschbedingung *)
+	tmp						: ST_Coordinate;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SortRun := E_OperationResult.eOperationResult_NOk;
+
+SortRun := ConvertRun(Run);
+(* Startwerte zur Arraygröße *)
+links := 1;						(* Anfangselement des Arrays *)
+rechts := nCorrdinatesCount;//SHR(size,2);		(* Endelement des Arrays *)
+stack_count := 1;//1;			(* Laufvariable Stack *)
+
+WHILE NOT ende_aussen DO						(* äußere Schleife *)
+	IF links < rechts THEN
+		pivot := stCoordinates[SHR(rechts+links,1)-1];			(* Wert des mittleren Elements als Pivot-Wert *)
+		i := links -1;
+		j := rechts +1;
+		
+		(* innere Schleife, teile Feld *)
+		ende_innen := FALSE;
+		REPEAT
+
+			(* steigende Reihenfolge *)
+			REPEAT	i := i+1;	UNTIL (Cmp_Coordinates(ADR(stCoordinates[i-1]), ADR(pivot)) >= 0) OR NOT (i < rechts)	END_REPEAT;
+			REPEAT	j := j-1;	UNTIL (Cmp_Coordinates(ADR(stCoordinates[j-1]), ADR(pivot)) <= 0) OR NOT (j > links)	END_REPEAT;
+			
+			IF i >= j THEN
+				ende_innen := TRUE;
+			ELSE
+				tmp := stCoordinates[j-1];
+				stCoordinates[j-1] := stCoordinates[i-1];
+				stCoordinates[i-1] := tmp;	
+			END_IF;
+
+		UNTIL ende_innen END_REPEAT;
+		
+
+		(* Push stack *)
+		stack[stack_count] := rechts;		(* rechten Teil später sortieren *)
+		IF Stack_count < 4096 THEN
+			stack_count := stack_count +1;
+		ELSE
+			ende_aussen := TRUE;
+			SortRun := E_OperationResult.eOperationResult_NOk;
+		END_IF;
+
+		(* linken Teil sortiern *)
+		rechts := MAX(links, i-1);
+
+	ELSE
+
+		IF stack_count = 1 THEN
+			ende_aussen := TRUE;
+		ELSE
+
+			links := rechts+1;
+
+			(* pop stack *)
+			stack_count := stack_count -1;		(* jetzt rechten Teil sortierne *)
+			rechts:= stack[stack_count];
+		END_IF;
+
+	END_IF;
+
+END_WHILE;
+
+eCoordinatesSortState := E_CoordinatesSortState.eCoordinatesSortState_sorted;
+SortRun := E_OperationResult.eOperationResult_Ok;
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Mat">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Cmp_Coordinates">
+      <LineId Id="35" Count="0" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.ConvertRun">
+      <LineId Id="325" Count="0" />
+      <LineId Id="427" Count="0" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="436" Count="2" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="342" Count="0" />
+      <LineId Id="338" Count="2" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="441" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Count_HolesOfElement">
+      <LineId Id="25" Count="4" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="42" Count="3" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="46" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Count_HolesOfRun">
+      <LineId Id="48" Count="1" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="50" Count="3" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="46" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.GetCoordinate">
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="27" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.HolesOfElement">
+      <LineId Id="222" Count="0" />
+      <LineId Id="224" Count="1" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="177" Count="1" />
+      <LineId Id="309" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="64" Count="2" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="341" Count="0" />
+      <LineId Id="338" Count="2" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="333" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="258" Count="2" />
+      <LineId Id="266" Count="1" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="265" Count="0" />
+      <LineId Id="276" Count="1" />
+      <LineId Id="268" Count="1" />
+      <LineId Id="278" Count="1" />
+      <LineId Id="271" Count="1" />
+      <LineId Id="280" Count="1" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="308" Count="0" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="306" Count="1" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="100" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.HolesOfRun">
+      <LineId Id="107" Count="1" />
+      <LineId Id="105" Count="1" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="67" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.LoadMat">
+      <LineId Id="12" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Mat.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Mat.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.MaxDistanceX.Get">
+      <LineId Id="16" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.MaxDistanceY.Get">
+      <LineId Id="5" Count="10" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Reset">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="15" Count="2" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.ResortCoordinates">
+      <LineId Id="9" Count="0" />
+      <LineId Id="5" Count="2" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="98" Count="1" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.Run">
+      <LineId Id="15" Count="1" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Mat.SortRun">
+      <LineId Id="6" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="7" Count="58" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,5 @@
+{
+  "controlTypeValues": {},
+  "controlClassValues": {},
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/ThemeDescription.Schema.json"
+}

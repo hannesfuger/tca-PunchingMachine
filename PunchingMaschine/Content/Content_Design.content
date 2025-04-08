@@ -1,0 +1,46 @@
+<div id="Content_Design" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="1920" data-tchmi-height="1080">
+
+<div id="Page_Design_1" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="1080" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-target-user-control="Controls/Pages/Page_Design.usercontrol" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1720" data-tchmi-width-unit="px" data-tchmi-stmat="%i%stCurMat%/i%" data-tchmi-selectedrun="%i%nSelRun%/i%" data-tchmi-selectedelement="%i%nSelElement%/i%" data-tchmi-selectedrunnr="%i%nSelRun%/i%" data-tchmi-selectedelementnr="%i%nSelElement%/i%" data-tchmi-refresh="%i%bRefresh%/i%">
+
+
+<script data-tchmi-target-attribute="data-tchmi-stselectedrun" type="application/json">
+{
+  "astElements": [],
+  "bActive": null,
+  "bOutletbelt": null,
+  "fThresholdX": null,
+  "fThresholdY": null,
+  "nOutletbeltIntervall": null,
+  "sMatRunName": null,
+  "sMatRunNr": null,
+  "sNotice": null,
+  "stTool": {
+    "eDieGeometry": null,
+    "fLength": null,
+    "fRadius": null,
+    "fRoundCorner": null,
+    "fWidth": null,
+    "nToolNr": null,
+    "sNotice": null,
+    "stToolName": null
+  },
+  "stToolHolder": {
+    "bMultiDie": null,
+    "bRotateDie": null,
+    "fDie_Offset": null,
+    "fX_Offset": null,
+    "fY_Offset": null,
+    "nDieCount": null,
+    "nToolHolderNr": null,
+    "sNotice": null,
+    "sToolExtensionName": null,
+    "sToolExtensionNr": null,
+    "sToolHolderName": null
+  }
+}
+</script>
+</div>
+
+
+
+</div>

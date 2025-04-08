@@ -1,0 +1,1484 @@
+<div id="Page_Maint" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControl" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="1720" data-tchmi-height="1080" data-tchmi-width-unit="px" data-tchmi-height-unit="px" data-tchmi-creator-viewport-width="500" data-tchmi-creator-viewport-height="500" data-tchmi-zindex="1">
+
+<div id="MatInfo_lenght_var_5" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="550" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::stMatOrigin::fX%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="105" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True" data-tchmi-is-enabled="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_5.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_5::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_5::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::stMatOrigin::fX%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_5::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_width_var_5" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="550" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::stMatOrigin::fY%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="155" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_width_var_5.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_width_var_5::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_width_var_5::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::stMatOrigin::fY%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_width_var_5::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_6" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="550" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::stMaintPosition::fX%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="265" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_6.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_6::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_6::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::stMaintPosition::fX%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_6::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_width_var_6" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="550" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::stMaintPosition::fY%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="315" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_width_var_6.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_width_var_6::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_width_var_6::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::stMaintPosition::fY%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_width_var_6::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_8" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="874" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fVelocityX%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="106" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_8.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_8::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_8::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fVelocityX%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_8::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_9" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="874" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fVelocityY%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="156" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_9.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_9::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_9::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fVelocityY%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_9::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_10" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="874" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fAccelerationX%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="206" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_10.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_10::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_10::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fAccelerationX%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_10::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_11" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="874" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fAccelerationY%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="256" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_11.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_11::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_11::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fAccelerationY%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_11::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_width_var_7" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="874" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fVelocityPunch%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="366" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_width_var_7.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_width_var_7::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_width_var_7::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fVelocityPunch%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_width_var_7::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_width_var_8" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="874" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fAccelerationPunch%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="416" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_width_var_8.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_width_var_8::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_width_var_8::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fAccelerationPunch%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_width_var_8::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_7" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1206" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fSaftyDistanceToMat%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="105" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_7.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_7::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_7::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fSaftyDistanceToMat%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_7::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_4" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%X_Pos%/l%" data-tchmi-top="105" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_width_4" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%Y_Pos%/l%" data-tchmi-top="155" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_5" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%X_Pos%/l%" data-tchmi-top="265" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_width_5" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%Y_Pos%/l%" data-tchmi-top="315" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_7" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%velocity%/l%, &quot; in X&quot;)%/f%" data-tchmi-top="106" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_8" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%velocity%/l%, &quot; in Y&quot;)%/f%" data-tchmi-top="156" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_9" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%acceleration%/l%, &quot; in X&quot;)%/f%" data-tchmi-top="206" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_10" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%acceleration%/l%, &quot; in Y&quot;)%/f%" data-tchmi-top="256" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_width_6" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%l%velocity%/l%" data-tchmi-top="366" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_width_7" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%l%acceleration%/l%" data-tchmi-top="416" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_6" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1044" data-tchmi-left-unit="px" data-tchmi-text="%l%safetyDistance%/l%" data-tchmi-top="105" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="Util_MaintCmd_2" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="420" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-target-user-control="Controls/Utilities/Util_MaintCmd.usercontrol" data-tchmi-top="660" data-tchmi-top-unit="px" data-tchmi-width="1290" data-tchmi-width-unit="px" data-tchmi-zindex="1" data-tchmi-stmaintcmd="%pp%stMaintCmd%/pp%" data-tchmi-stmaintparam="%pp%stMaintParam%/pp%" data-tchmi-stmaintinfo="%pp%stMaintInfo%/pp%">
+
+
+</div>
+
+<div id="TcHmiTextblock_45" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="70" data-tchmi-left-unit="px" data-tchmi-text="%l%Settings%/l%" data-tchmi-top="55" data-tchmi-top-unit="px" data-tchmi-width="460" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="36" data-tchmi-text-font-style="Normal" data-tchmi-zindex="0">
+
+</div>
+
+<div id="Tool_geometry_41" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%MatOrigin%/l%" data-tchmi-top="55" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="Tool_geometry_42" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%maintPos%/l%,&quot; &quot;, %l%right%/l%)%/f%" data-tchmi-top="375" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="Tool_geometry_43" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%l%movement%/l%" data-tchmi-top="56" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="Tool_geometry_44" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="714" data-tchmi-left-unit="px" data-tchmi-text="%l%Punching%/l%" data-tchmi-top="315" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="Tool_geometry_45" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1044" data-tchmi-left-unit="px" data-tchmi-text="%l%furtherSettings%/l%" data-tchmi-top="55" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="MatInfo_lenght_var_13" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="550" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::stMaintPositionAlt::fX%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="425" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_13.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_13::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_13::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::stMaintPositionAlt::fX%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_13::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_width_var_10" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="550" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::stMaintPositionAlt::fY%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="475" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-is-enabled="True" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_width_var_10.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_width_var_10::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_width_var_10::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::stMaintPositionAlt::fY%/pp%",
+        "valueType": "tchmi:general#/definitions/REAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_width_var_10::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_12" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%X_Pos%/l%" data-tchmi-top="425" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_width_9" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%Y_Pos%/l%" data-tchmi-top="475" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="Tool_geometry_46" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%maintPos%/l%,&quot; &quot;, %l%left%/l%)%/f%" data-tchmi-top="214" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="TcHmiTextblock_46" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="70" data-tchmi-left-unit="px" data-tchmi-text="%l%command%/l%" data-tchmi-top="660" data-tchmi-top-unit="px" data-tchmi-width="460" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="36" data-tchmi-text-font-style="Normal" data-tchmi-zindex="0">
+
+</div>
+
+<div id="TcHmiButton_66" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiButton" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="390" data-tchmi-left-unit="px" data-tchmi-text="%l%accept%/l%" data-tchmi-top="535" data-tchmi-top-unit="px" data-tchmi-width="1289" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18">
+
+
+<script data-tchmi-target-attribute="data-tchmi-text-color" type="application/json">
+{
+  "color": "rgba(0, 0, 0, 1)"
+}
+</script>
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "TcHmiButton_66.onMouseClick",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stMaintCmd::bLoadConfig%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "StaticValue",
+          "valueType": "tchmi:general#/definitions/BOOL",
+          "value": true
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+</div>
+
+<div id="MatInfo_lenght_13" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1044" data-tchmi-left-unit="px" data-tchmi-text="%l%moveOutside%/l%" data-tchmi-top="165" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_14" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1206" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fMoveOutside%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="165" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_14.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_14::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_14::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fMoveOutside%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_14::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_14" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1044" data-tchmi-left-unit="px" data-tchmi-text="%l%Overrun%/l%" data-tchmi-top="224" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_15" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1206" data-tchmi-left-unit="px" data-tchmi-text="%f%GaugeValueFormatter(%pp%stConfig::fPassDistance%/pp%,%i%maxDecimals%/i%).toString().replace(&quot;.&quot;, &quot;,&quot;)%/f%" data-tchmi-top="224" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_15.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%MatInfo_lenght_var_15::Text%/ctrl%",
+        "valueType": "tchmi:general#/definitions/String",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "%ctrl%MatInfo_lenght_var_15::Text%/ctrl%.replace(',','.') "
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::fPassDistance%/pp%",
+        "valueType": "tchmi:general#/definitions/LREAL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GaugeValueFormatter(%ctrl%MatInfo_lenght_var_15::Text%/ctrl%, %i%maxDecimals%/i%)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="Tool_geometry_51" data-tchmi-zindex="4" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1369" data-tchmi-left-unit="px" data-tchmi-text="%l%torqueLimit%/l%" data-tchmi-top="55" data-tchmi-top-unit="px" data-tchmi-width="300" data-tchmi-width-unit="px" data-tchmi-word-wrap="False" data-tchmi-text-font-style="Normal" data-tchmi-text-font-weight="Normal" data-tchmi-text-font-size="24" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-color="%i%col_greenDrk%/i%">
+
+
+        
+
+        
+
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "left": 5,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}</script>
+
+
+    
+
+
+
+
+
+
+
+</div>
+
+<div id="MatInfo_lenght_var_16" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1529" data-tchmi-left-unit="px" data-tchmi-text="%pp%stConfig::nXTorqueLimit%/pp%" data-tchmi-top="104" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_16.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::nXTorqueLimit%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%ctrl%MatInfo_lenght_var_16::Text%/ctrl%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_15" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1369" data-tchmi-left-unit="px" data-tchmi-text="%l%xAxis%/l%" data-tchmi-top="105" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_16" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1369" data-tchmi-left-unit="px" data-tchmi-text="%l%yAxis%/l%" data-tchmi-top="165" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_17" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1529" data-tchmi-left-unit="px" data-tchmi-text="%pp%stConfig::nYTorqueLimit%/pp%" data-tchmi-top="164" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_17.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::nYTorqueLimit%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%ctrl%MatInfo_lenght_var_17::Text%/ctrl%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_17" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1369" data-tchmi-left-unit="px" data-tchmi-text="%l%punchAxis%/l%" data-tchmi-top="224" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_18" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1529" data-tchmi-left-unit="px" data-tchmi-text="%pp%stConfig::nPunchTorqueLimit%/pp%" data-tchmi-top="223" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_18.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::nPunchTorqueLimit%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%ctrl%MatInfo_lenght_var_18::Text%/ctrl%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_19" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1529" data-tchmi-left-unit="px" data-tchmi-text="%pp%stConfig::nPunchTorqueLimitNeg%/pp%" data-tchmi-top="284" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_19.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::nPunchTorqueLimitNeg%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%ctrl%MatInfo_lenght_var_19::Text%/ctrl%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+<div id="MatInfo_lenght_18" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1369" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%punchAxis%/l%, &quot; -&quot;)%/f%" data-tchmi-top="285" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_19" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-textblock="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1369" data-tchmi-left-unit="px" data-tchmi-text="%f%Concatenate(%l%punchAxis%/l%, &quot; +&quot;)%/f%" data-tchmi-top="345" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Right" data-tchmi-text-vertical-alignment="Center">
+
+
+        
+    
+
+</div>
+
+<div id="MatInfo_lenght_var_20" data-tchmi-zindex="2" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextbox" data-tchmi-textbox="" data-tchmi-height="50" data-tchmi-height-unit="px" data-tchmi-left="1529" data-tchmi-left-unit="px" data-tchmi-text="%pp%stConfig::nPunchTorqueLimitPos%/pp%" data-tchmi-top="344" data-tchmi-top-unit="px" data-tchmi-width="150" data-tchmi-width-unit="px" data-tchmi-text-font-size="18" data-tchmi-text-horizontal-alignment="Left" data-tchmi-auto-focus-out="True">
+        <script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">{
+  "top": 3,
+  "right": 3,
+  "bottom": 3,
+  "left": 3
+}</script>
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "MatInfo_lenght_var_20.onUserInteractionFinished",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%stConfig::nPunchTorqueLimitPos%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%ctrl%MatInfo_lenght_var_20::Text%/ctrl%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%_valueChange%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%_valueChange%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+    
+
+</div>
+
+</div>

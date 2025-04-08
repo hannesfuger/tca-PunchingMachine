@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="E_Geometry" Id="{5cd595f4-d651-48e1-811e-2061bbb3c113}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE E_Geometry :
+(
+	eGeometry_undefined := 0,
+	eGeometry_square := 1,
+	eGeometry_rectangular := 2,
+	eGeometry_circle := 3,
+	eGeometry_point := 4
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

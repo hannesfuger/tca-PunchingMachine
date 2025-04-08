@@ -1,0 +1,37 @@
+<div id="Content_Mat" data-tchmi-type="TcHmi.Controls.System.TcHmiContent" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="1720" data-tchmi-height="1080" data-tchmi-zindex="3">
+
+<div id="Page_Mat_1" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-height="1080" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-target-user-control="Controls/Pages/Page_Mat.usercontrol" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1720" data-tchmi-width-unit="px" data-tchmi-stmat="%i%stCurMat%/i%" data-tchmi-zindex="1">
+
+
+
+</div>
+
+<div id="TcHmiRectangle_11" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiRectangle" data-tchmi-height="1080" data-tchmi-height-unit="px" data-tchmi-left="330" data-tchmi-left-unit="px" data-tchmi-stroke-thickness="1" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="1390" data-tchmi-width-unit="px" data-tchmi-zindex="0">
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-stroke-color" type="application/json">
+{
+  "color": "None"
+}
+</script>
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-background-color" type="application/json">
+{
+  "color": "rgba(0, 0, 0, 0)"
+}
+</script>
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-fill-color" type="application/json">
+{
+  "color": "rgba(241, 241, 241, 1)"
+}
+</script>
+</div>
+
+</div>

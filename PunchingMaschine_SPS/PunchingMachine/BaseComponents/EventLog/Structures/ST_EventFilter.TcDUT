@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="ST_EventFilter" Id="{4791c78f-2cae-4dd3-b5e3-8dd462d2de9d}">
+    <Declaration><![CDATA[/// Notification filter set
+TYPE ST_EventFilter :
+STRUCT
+	/// Filter to IsRaised flag
+	eIsRaisedFilter : E_BoolFilter := E_BoolFilter.eBoolFilter_none;
+	/// Filter to priority
+	ePriorityFilter	: E_Priority := E_Priority.ePriority_none;
+	/// Filter to machine area
+	eAreaFilter 	: E_MachineArea := E_MachineArea.eMachineArea_none;
+	/// Filter Info
+	eInfoFilter		: BOOL;
+	/// Filter Warning
+	eWarningFilter	: BOOL;
+	/// Filter Info
+	eErrorFilter	: BOOL;
+	/// Dialog visible
+	bVisible		: BOOL;
+	// Default machinearea
+	eDefaultMachineArea		: E_MachineArea;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

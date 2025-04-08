@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <GVL Name="COMP" Id="{ef10cded-963d-4196-80fc-fb2eff35a309}">
+    <Declaration><![CDATA[VAR_GLOBAL
+	
+	/// Linked Safety
+	{attribute 'TcContextName':='IOTask'}
+	stSafetyIO						: ST_SafetyIO;
+
+	/// Linked EtherCAT state
+	{attribute 'TcContextName':='IOTask'}
+	stEtherCATState					: ST_EtherCatIO;	
+	
+	/// Linked Component
+	{attribute 'TcContextName' := 'IOTask'}
+	aStCylinderIO					: ARRAY[0..COMP_CONST.nMaxIdxCylinder] OF ST_CylinderDriverIO;
+	{attribute 'TcContextName' := 'IOTask'}
+	aStDigitalOutputIO				: ARRAY[0..COMP_CONST.nMaxIdxDigitalOutput] OF ST_DigitalOutputIO;
+	{attribute 'TcContextName':='IOTask'}
+	stSafetyLockIO					: ST_SafetyLockIO;
+		
+	
+	/// Linked Axis
+	{attribute 'TcContextName' := 'NcTask'}
+	astAxisRef						: ARRAY[0..COMP_CONST.nMaxIdxAxis] OF AXIS_REF;
+	{attribute 'TcContextName' := 'NcTask'}
+	astAxisIO						: ARRAY[0..COMP_CONST.nMaxIdxAxis] OF ST_AxisIO;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

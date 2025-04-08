@@ -1,0 +1,69 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-boolean",
+      "displayName": "Boolean",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "Boolean",
+      "propertySetterName": "setBoolean",
+      "propertyGetterName": "getBoolean"
+    },
+    {
+      "name": "data-tchmi-col_true_state",
+      "displayName": "col_TRUE_State",
+      "visible": true,
+      "type": "tchmi:framework#/definitions/Color",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "col_TRUE_State",
+      "propertySetterName": "setCol_TRUE_State",
+      "propertyGetterName": "getCol_TRUE_State",
+      "defaultValueInternal": null
+    },
+    {
+      "name": "data-tchmi-col_false_state",
+      "displayName": "col_FALSE_State",
+      "visible": true,
+      "type": "tchmi:framework#/definitions/Color",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "col_FALSE_State",
+      "propertySetterName": "setCol_FALSE_State",
+      "propertyGetterName": "getCol_FALSE_State",
+      "defaultValueInternal": null
+    },
+    {
+      "name": "data-tchmi-size",
+      "displayName": "Size",
+      "visible": true,
+      "type": "tchmi:general#/definitions/INT",
+      "category": "",
+      "description": "",
+      "defaultValue": 50,
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "Size",
+      "propertySetterName": "setSize",
+      "propertyGetterName": "getSize"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

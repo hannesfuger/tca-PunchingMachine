@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <GVL Name="GVL" Id="{ce4e0b60-b7a8-421a-a8f0-c5f124604bf1}">
+    <Declaration><![CDATA[VAR_GLOBAL
+	// Eventlog
+	fbEventLog						: FB_Eventlog;	
+
+	// System
+	fbSafety						: FB_Safety;
+	fbEtherCATBus					: FB_EtherCATBus;
+	fbSupervision					: FB_Supervision;	
+	
+	// Hardware
+	fbSafetyLock					: FB_SafetyLock;
+	fbMat							: FB_Mat;
+	fbPunchEngine					: FB_PunchEngine;
+	fbMatAndToolHandling			: FB_MatAndToolHandling;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

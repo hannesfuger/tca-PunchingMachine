@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <GVL Name="GVL_VISU" Id="{759c3698-edb1-49ab-8e39-a2158b78bc28}">
+    <Declaration><![CDATA[VAR_GLOBAL
+	init_ST_TOOL			: ST_TOOL;
+	init_ST_TOOLHOLDER		: ST_TOOLHOLDER;
+	init_ST_MAT				: ST_MAT;
+	init_ST_MATRUN			: ST_MATRUN;
+	init_ST_ELEMENT			: ST_ELEMENT;
+	init_ST_PunchJob		: ST_PunchJob;
+	init_ST_PunchCmds		: ST_PunchCmds;
+	init_ST_PunchInfo		: ST_PunchInfo;
+	init_ST_Config			: ST_MachineConfig;
+	
+	stMaintCmds				: ST_MaintCmds;	
+	stMaintParam			: ST_MaintParam;	
+	stMaintInfo				: ST_MaintInfo;	
+	
+	stPunchCmds				: ST_PunchCmds;	
+	stPunchParam			: ST_PunchParam;
+	stPunchInfo				: ST_PunchInfo;
+
+	stMachineConfig			: ST_MachineConfig;	
+	stCurMat				: ST_Mat;
+	stPunchJob				: ST_PunchJob;		
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

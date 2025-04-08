@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="F_LRealToStringEx" Id="{5ad64110-40a8-4271-8a35-abc9d6257b76}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_LRealToStringEx : STRING(255)
+VAR_INPUT
+	fValue: LREAL;
+	iPrecision: INT := 3;
+END_VAR
+VAR
+	fbFormat: FB_FormatString;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbFormat( sFormat := Concat3('%.', INT_TO_STRING(iPrecision), 'f'), arg1 := F_LREAL( fValue ), sOut => F_LRealToStringEx);
+]]></ST>
+    </Implementation>
+    <LineIds Name="F_LRealToStringEx">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

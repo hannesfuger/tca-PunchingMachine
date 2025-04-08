@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="E_JobState" Id="{4068a76c-f3ff-4a9f-b8db-69fea28bb961}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_JobState :
+(
+	eJobState_none := 0,
+	eJobState_ready := 1,
+	eJobState_stopped := 2,
+	eJobState_running := 3,
+	eJobState_error := 4,
+	eJobState_finished := 5,
+	eJobState_aborted := 6
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

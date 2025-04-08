@@ -1,0 +1,68 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-stmaintcmd",
+      "displayName": "stMaintCmd",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_MaintCmds",
+      "category": "",
+      "description": "",
+      "defaultValue": {},
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stMaintCmd",
+      "propertySetterName": "setStMaintCmd",
+      "propertyGetterName": "getStMaintCmd"
+    },
+    {
+      "name": "data-tchmi-stmaintparam",
+      "displayName": "stMaintParam",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_MaintParam",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stMaintParam",
+      "propertySetterName": "setStMaintParam",
+      "propertyGetterName": "getStMaintParam"
+    },
+    {
+      "name": "data-tchmi-stmaintinfo",
+      "displayName": "stMaintInfo",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_MaintInfo",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stMaintInfo",
+      "propertySetterName": "setStMaintInfo",
+      "propertyGetterName": "getStMaintInfo"
+    },
+    {
+      "name": "data-tchmi-_valuechange",
+      "displayName": "_valueChange",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "defaultValue": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "_valueChange",
+      "propertySetterName": "set_valueChange",
+      "propertyGetterName": "get_valueChange"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

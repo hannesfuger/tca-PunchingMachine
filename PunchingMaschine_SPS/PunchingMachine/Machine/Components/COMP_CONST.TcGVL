@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <GVL Name="COMP_CONST" Id="{4c7f5ad6-a5ac-4318-a42c-74a918ada97f}" ParameterList="True">
+    <Declaration><![CDATA[VAR_GLOBAL CONSTANT
+	
+	/// Zero based max index for axis
+	nMaxIdxAxis						: INT := eAxis_max - 1;
+	nMaxIdxCylinder					: INT := eCylinder_max - 1;	
+	nMaxIdxDigitalOutput			: INT := eDigitalOutput_max - 1;	
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

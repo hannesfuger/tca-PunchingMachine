@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="FB_EtherCatBox" Id="{7e7f8956-e609-4196-8373-0e02e1ff6c9c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_EtherCatBox EXTENDS FB_ComponentBase
+VAR
+	/// IO structure
+	stIO 				: REFERENCE TO ST_EtherCatBoxIO;
+	oldEtherCatBoxState : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// EtherCATBox driver.
+/// Hannes Fuger / asma.at / 12.2015
+///]]></ST>
+    </Implementation>
+    <Method Name="FB_init" Id="{e8caefbb-bd80-4343-8a89-81b21a08d712}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_EtherCATBox;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{d6eff455-30d8-4a6f-b98c-91bedb561626}">
+      <Declaration><![CDATA[METHOD Run : E_ComponentState
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+// chk reference
+IF NOT __ISVALIDREF(fbEventLog) THEN
+	RETURN;
+END_IF
+
+// chk Box name
+IF sName = sEmpty THEN
+	RETURN;
+END_IF
+
+IF oldEtherCatBoxState = stIo.aeEtherCatBoxState THEN
+	RETURN;
+ELSE
+	oldEtherCatBoxState := stIo.aeEtherCatBoxState;
+END_IF
+
+// switch state 
+CASE stIo.aeEtherCatBoxState OF
+	// 0x___1 = Slave in 'INIT' state
+	eEtherCatSlaveState_INIT:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x___1 = Slave in "INIT" state'));
+		
+	// 0x___2 = Slave in 'PREOP' state
+	eEtherCatSlaveState_PREOP:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x___2 = Slave in "PREOP" state'));
+		
+	// 0x___3 = Slave in 'BOOT' state
+	eEtherCatSlaveState_BOOT:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x___3 = Slave in "BOOT" state'));
+		
+	// 0x___4 = Slave in 'SAFEOP' state
+	eEtherCatSlaveState_SAFEOP:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x___4 = Slave in "SAFEOP" state'));
+		
+	// 0x___8 = Slave in 'OP' state
+	eEtherCatSlaveState_OP:
+		//fbHMI.SetNotificationPrio(eNotification_EcSlaveInfo, Concat3(sBoxName, ' EcState: ', '0x___8 = Slave in "OP" state'), E_Priority.ePriority_info);
+		
+	// 0x001_ = Slave signals error
+	eEtherCatSlaveState_SignalsError:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x001_ = Slave signals error'));
+		
+	// 0x002_ = Invalid vendorId, productCode... read
+	eEtherCatSlaveState_Invalid:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x002_ = Invalid vendorId, productCode... read'));
+		
+	// 0x004_ = Initialization error occurred
+	eEtherCatSlaveState_InitErr:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x004_ = Initialization error occurred'));
+		
+	// 0x008_ = Slave disabled
+	eEtherCatSlaveState_Disabled:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x008_ = Slave disabled'));
+		
+	// 0x010_ = Slave not present
+	eEtherCatSlaveState_NotPresent:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x010_ = Slave not present'));
+		
+	// 0x020_ = Slave signals link error
+	eEtherCatSlaveState_LinkErr:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x020_ = Slave signals link error'));
+		
+	// 0x040_ = Slave signals missing link
+	eEtherCatSlaveState_MissingLink:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x040_ = Slave signals missing link'));
+		
+	// 0x080_ = Slave signals unexpected link
+	eEtherCatSlaveState_UnexpectedLink:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x080_ = Slave signals unexpected link'));
+		
+	// 0x100_ = Communication port A
+	eEtherCatSlaveState_ComPortA:
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x100_ = Communication port A'));
+		                                                                                              
+	// 0x200_ = Communication port B                                                                  
+	eEtherCatSlaveState_ComPortB:                                                                     
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x200_ = Communication port B'));
+		                                                                                              
+	// 0x400_ = Communication port C                                                                  
+	eEtherCatSlaveState_ComPortC:                                                                     
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x400_ = Communication port C'));
+		                                                                                              
+	// 0x800_ = Communication port D                                                                  
+	eEtherCatSlaveState_ComPortD:                                                                     
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ' EcState: ', '0x800_ = Communication port D'));
+		
+ELSE
+	IF stIo.aeEtherCatBoxState <> eEtherCatSlaveState_OP THEN
+		WriteError(eEvent_EcSlaveError , Concat3(sName, ': EcState ', INT_TO_STRING(stIo.aeEtherCatBoxState)));
+	END_IF
+END_CASE
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetReferences" Id="{5ab43de3-16a1-4d3d-ba97-7c8b62dbe751}">
+      <Declaration><![CDATA[/// Dependency injection method.
+{attribute 'object_name' := 'SetReferences'}
+METHOD SetReferences
+VAR_IN_OUT
+	/// IO structure
+	stRefIO		: ST_EtherCatBoxIO;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// set up references
+stIO REF= stRefIO;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_EtherCatBox">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EtherCatBox.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EtherCatBox.Run">
+      <LineId Id="3" Count="95" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EtherCatBox.SetReferences">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

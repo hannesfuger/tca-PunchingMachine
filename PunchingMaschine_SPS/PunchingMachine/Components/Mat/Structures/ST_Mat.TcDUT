@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_Mat" Id="{fe2cd177-f544-4b54-bc62-42180b02b993}">
+    <Declaration><![CDATA[TYPE ST_Mat :
+STRUCT
+	// Info
+	nMatNr						: UINT;
+	sMatName					: STRING;	
+	sNotice						: STRING;
+	sProductNumber				: STRING;
+	                    		
+	// Geometry         		
+	fWidth						: REAL;
+	fHeight						: REAL;
+	fLenght						: REAL;
+		
+	astMatOrigins				: ARRAY[0..MATS_COUNT] OF ST_Coordinate;
+	
+	// Runs             	
+	nActiveRuns					: INT;
+	astRuns						: ARRAY[0..MATRUNS_COUNT] OF ST_MatRun;
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="F_LRealToString" Id="{893b7018-a3d0-49a4-a7c2-880be2b53ec0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_LRealToString : STRING(255)
+VAR_INPUT
+	fValue: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_LRealToString := F_LRealToStringEx(fValue, 3);
+]]></ST>
+    </Implementation>
+    <LineIds Name="F_LRealToString">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

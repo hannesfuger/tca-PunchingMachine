@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="E_OperationMode" Id="{ab546ced-988c-4575-8006-b5f0f5c83fb2}">
+    <Declaration><![CDATA[/// Auflistung aller Betriebsmodi
+TYPE E_OperationMode :
+(
+	eOperationMode_none := 0,
+	eOperationMode_Start := 1,
+	eOperationMode_Stop  := 2,
+	eOperationMode_Halt  := 3,
+	eOperationMode_Resume  := 4,
+	eOperationMode_Reset  := 5,
+	eOperationMode_Maintenance  := 6,
+	eOperationMode_Emergency  := 7
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

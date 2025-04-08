@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_SafetyLockIO" Id="{62d1c27f-0bdf-42f8-9bae-f40842cdfe53}">
+    <Declaration><![CDATA[/// Saftey Lock IO structure.
+TYPE ST_SafetyLockIO :
+STRUCT
+	
+	/// Data to device.           
+	stOut		AT%Q*		: ST_SafetyLockOut;
+	
+	/// Data from device.
+	stIn					: ST_SafetyLockIn;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

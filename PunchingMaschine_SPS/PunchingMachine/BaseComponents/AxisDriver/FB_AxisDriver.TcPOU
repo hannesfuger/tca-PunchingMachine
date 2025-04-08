@@ -1,0 +1,2667 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_AxisDriver" Id="{0c2d6976-0f08-4e4d-a33e-b7da0b2f397b}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Axis driver function block
+FUNCTION_BLOCK FB_AxisDriver EXTENDS FB_ComponentBase IMPLEMENTS ITFMotionComponent
+VAR_INPUT
+	/// AmsNetId of the IPC 
+	IPCNetID: T_AmsNetId := '';
+END_VAR
+VAR_OUTPUT
+	/// Fehlerzustand
+	Error: BOOL;
+	/// Position der Achse
+	Position: LREAL;
+	/// Aktuelle Positionen mit gelatchten Objektposition gleich
+	bLatchedObjPositionOK					:BOOL;
+END_VAR
+VAR
+	/// private workflow var`s
+	/// component type
+	bEnable: BOOL;
+	bEnableLimit: BOOL := FALSE;
+	bEnablePos: BOOL;
+	bEnableNeg: BOOL;
+	
+	nLimitPos		: LREAL;
+	nLimitNeg		: LREAL;
+	
+	fPositionBias	: LREAL;
+	fFeedConstant	: LREAL;
+	
+	
+	bSafetyCardAct: BOOL;
+	eMasterAxisId: E_Axis;
+	eAxisType: E_AxisType;
+	stDefaultPrm: ST_AxisDriverParameter;
+	ptDefaultPrm: POINTER TO ST_AxisDriverParameter;
+	nErrorID: UDINT;
+	bErrDiagActive: BOOL;
+	sMsg: T_MaxString;
+	/// requested motion command
+	eCommandRequest: E_MotionCommand;
+	fPosRequest	: LREAL;
+	fPosLatched	: LREAL;
+	/// actual motion command
+	eCommandExecute: E_MotionCommand;
+	
+	/// Axis ID and reference
+	eAxisId: E_Axis;
+	fbAxisRef: REFERENCE TO AXIS_REF;
+	/// Additional (direct) linked inputs
+	stIn: REFERENCE TO ST_AxisIn;
+	/// Additional (direct) linked outputs
+	stOut: REFERENCE TO ST_AxisOut;
+	/// Device ref: contains sNetID of EcMaster, nSlaveAddr of EcDrive, nDriveNo of EcDrive, either preset or read from NC 
+	stDriveRef: ST_DriveRef;
+	///	AX5000 - axes diag + reset 
+	fbAX5xxxDiag: FB_AX5000Diag;
+	stAX5xxxDiag: ST_AX5000Diag;
+	
+	/// FB for axis enabling
+	fbPower: MC_Power;
+	/// FB for halting the axis
+	fbHalt: MC_Halt;
+	stHaltPrm: ST_AxisHaltParameter;
+	/// FB for stopping the axis
+	fbStop: MC_Stop;
+	stStopPrm: ST_AxisStopParameter;
+	/// FB for resetting the axis
+	fbReset: MC_Reset;
+	/// FB for axis homing
+	fbHoming: MC_Home;
+	stHomingPrm: ST_AxisHomingParameter;
+	/// FB for set axis position
+	fbSetPos: MC_SetPosition;
+	stSetPosPrm: ST_AxisSetPosParameter;
+	/// FB for axis jog
+	fbjog: MC_Jog;
+	stJogPrm: ST_AxisJogParameter;
+	/// FB for axis accelerating jog
+	fbJogAcc: MC_MoveVelocity;
+	stJogAccPrm: ST_AxisJogAccParameter;
+	tonJogAcc: TON;
+	/// FB for axis move absolute (this motion command can be overlayed, thus 2 FBs)
+	fbMovAbs1: MC_MoveAbsolute;
+	fbMovAbs2: MC_MoveAbsolute;
+	stMovAbsPrm: ST_AxisMoveAbsParameter;
+	/// FB for axis move additive (this motion command can be overlayed, thus 2 FBs)
+	fbMovAdd1: MC_MoveAdditive;
+	fbMovAdd2: MC_MoveAdditive;
+	stMovAddPrm: ST_AxisMoveAddParameter;
+	/// FB for axis move relative (this motion command can be overlayed, thus 2 FBs)
+	fbMovRel1: MC_MoveRelative;
+	fbMovRel2: MC_MoveRelative;
+	stMovRelPrm: ST_AxisMoveRelParameter;
+	/// FB for axis move modulo (this motion command can be overlayed, thus 2 FBs)
+	fbMovMod1: MC_MoveModulo;
+	fbMovMod2: MC_MoveModulo;
+	stMovModPrm: ST_AxisMoveModParameter;
+	/// FB for axis move velocity (this motion command can be overlayed, thus 2 FBs)
+	fbMovVel1: MC_MoveVelocity;
+	fbMovVel2: MC_MoveVelocity;
+	stMovVelPrm: ST_AxisMoveVelParameter;
+	/// FB for axis dynamic gear
+	fbGearIn: MC_GearInDyn;
+	stGearInPrm: ST_AxisGearInParameter;
+	fbGearOut: MC_GearOut;
+	stGearOutPrm: ST_AxisGearOutParameter;
+	
+	ii: INT;
+	rtrigError: R_TRIG;
+	ftrigDiag: F_TRIG;
+	///tonTimeOut	: TON;
+	tonChkOperation: TON;
+	/// ID of the last error in one of the motion FBs
+	tonAutoPowerOff: TON;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// Axis driver FB
+/// (partly migrated from RMTH FB_MotionCore TwinCAT2)
+/// TP/www.rmth.at/10.2014
+/// 
+]]></ST>
+    </Implementation>
+    <Folder Name="Factory" Id="{b674cc3b-087e-49e2-b379-1f2d29f9afae}" />
+    <Folder Name="MotionCommands" Id="{9f5e70be-0855-4dd4-8e9e-1e34d87d8f57}" />
+    <Folder Name="Properties" Id="{d6c31310-d6b0-4fd9-b40c-b9501aa095a3}" />
+    <Folder Name="Workflows" Id="{61faa897-cf1e-4b9b-bae7-523fcb0d40ff}" />
+    <Property Name="ActModuloPos" Id="{3c982f83-5587-4f1e-9a8c-9f3c377808ba}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PUBLIC ActModuloPos : LREAL]]></Declaration>
+      <Get Name="Get" Id="{1315723b-7c10-4118-b7a0-9002a41950b3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF __ISVALIDREF(fbAxisRef) THEN
+	ActModuloPos := fbAxisRef.NcToPlc.ModuloActPos;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ActPos" Id="{c87bdc53-2934-47a7-9028-0f28106ea748}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PUBLIC ActPos : LREAL]]></Declaration>
+      <Get Name="Get" Id="{750809ea-f135-4386-903f-fadc32cc3cad}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF __ISVALIDREF(fbAxisRef) THEN
+	ActPos := fbAxisRef.NcToPlc.ActPos;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ActPosEx" Id="{895fe90c-ec50-4058-89a7-3cc11e4da828}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PUBLIC ActPosEx : LREAL]]></Declaration>
+      <Get Name="Get" Id="{40bd2c43-6889-4c3d-93eb-aa786f3275b3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ActPosEx := stIn.nPositionFeedbackValue*fFeedConstant + fPositionBias;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="AmplifierTemp" Id="{4b4a526e-88bf-420f-b8fb-399776b0c8a3}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual amplifier temp. [°C]
+PROPERTY AmplifierTemp : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{70b595bd-60af-450c-87ff-226c8794ee03}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual amplifier temp. [°C]
+AmplifierTemp := INT_TO_LREAL(stIn.iAmplifierTemperature) / 10;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Axis" Id="{5eef011e-4bc2-44aa-a2af-db94e6078f8e}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's the axis reference
+PROPERTY Axis : AXIS_REF
+]]></Declaration>
+      <Get Name="Get" Id="{6f7c40b4-0904-480d-a16d-2ae819d5a9b2}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Axis := fbAxisRef;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="AxisId" Id="{c6dee89f-0566-4585-b510-6ab3c6e52d20}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY AxisId : E_Axis
+]]></Declaration>
+      <Get Name="Get" Id="{0c472794-9dd2-4f36-a12f-ea2a25fb65de}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisId := eAxisId;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{ed5ba0a9-7c01-4069-ac9e-62209310ef61}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[eAxisId := AxisId;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="AxisState" Id="{2f1ea56c-0ff5-4776-b5ae-c70309c8c82a}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get`s the MC axis state.
+PROPERTY AxisState : Tc2_MC2.ST_AxisStatus
+]]></Declaration>
+      <Get Name="Get" Id="{63d92022-e7d3-48e8-a8aa-adba32dee289}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisState := fbAxisRef.Status;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="AxisType" Id="{147d0a95-a49d-4db3-838c-5c58df3b7b5e}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY AxisType : E_AxisType
+]]></Declaration>
+      <Get Name="Get" Id="{3442d6aa-7461-4f36-a7de-89656afa9f41}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[AxisType := eAxisType;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{c5287205-f1e8-4e49-b37e-6f67bc10d00b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[eAxisType := AxisType;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Action Name="CheckLatchState" Id="{18a6b9ca-f944-4a3d-a26c-188fee92e116}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[bLatchedObjPositionOK := ABS(Position - fPosLatched) <= 0.1;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Property Name="DefaultParameter" Id="{1531457e-c502-4f88-821e-f149f6616189}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY DefaultParameter : REFERENCE TO ST_AxisDriverParameter
+]]></Declaration>
+      <Get Name="Get" Id="{a770628c-723d-405a-a393-371dd9e7feca}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ptDefaultPrm := ADR(stDefaultPrm);
+DefaultParameter REF= ptDefaultPrm^;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{6572319a-4f4a-4d36-b012-14b8869f551f}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[stDefaultPrm := DefaultParameter;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Enable" Id="{cc048bfc-987a-4dcd-8a2f-4167f358f0ba}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Enable : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{4c410690-83e2-49c7-b7aa-643b4e51fedc}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Enable := bEnable;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{6a914f49-c4b0-4134-8a7f-b88cb1c8d17e}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bEnable := Enable;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="EnableLimitSensor" Id="{598e04b0-7cba-4a6e-94d6-d7e22d5aeb2b}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY EnableLimitSensor : BOOL]]></Declaration>
+      <Get Name="Get" Id="{3c310f86-3879-4cd6-a077-fd28c9dfca53}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[EnableLimitSensor := bEnableLimit;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{0f7ab432-fa87-4ef4-a1d3-1475ca93d634}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bEnableLimit := EnableLimitSensor;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="EnableNeg" Id="{791f012f-3d3c-4997-bb27-800d9581810d}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY EnableNeg : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{a494be3a-2b97-4fae-a017-17c051c9c00d}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[EnableNeg:=  bEnableNeg;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{45a1e00d-3a6d-4590-a5d6-91a630ca2311}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bEnableNeg:=EnableNeg;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="EnablePos" Id="{10b01c09-971e-4398-b115-2bf768eaac1e}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY EnablePos : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{ae9d7cdc-f8dc-480d-a57a-1145bc639143}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[EnablePos := bEnablePos;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{dac3f492-9c0d-41b4-b7a3-8bfe2f025e12}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bEnablePos := EnablePos;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="FB_init" Id="{c9831e15-4ba2-4bb5-9f91-b93e430dc473}" FolderPath="Factory\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_Axis;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GearIn" Id="{0ac8a524-21eb-4642-aa47-15403d5b5eee}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an electronic axis gear-in using default parameter set.
+{attribute 'object_name' := 'GearIn'}
+METHOD GearIn : E_OperationResult
+VAR_INPUT
+	/// Gear ratio
+	fRatio: LREAL;
+	/// Master axis id
+	eMasterId: E_Axis;
+END_VAR
+VAR_IN_OUT
+	/// Master axis to gear-in to
+	fbMaster: AXIS_REF;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// gear in axis to master
+
+// init result pessimistic
+GearIn := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stGearInPrm := stDefaultPrm.stGearInPrm;
+stGearInPrm.fGearRatio := fRatio;
+stGearInPrm.eMasterId := eMasterId;
+stGearInPrm.fbMaster REF= fbMaster;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_gearIn;
+GearIn := E_OperationResult.eOperationResult_Ok;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GearInEx" Id="{0dddd567-12cd-438d-8a09-876c96892c69}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an electronic axis gear-in using specified parameter
+{attribute 'object_name' := 'GearInEx'}
+METHOD GearInEx : E_OperationResult
+VAR_IN_OUT
+	/// Parameter set to use
+	stGearInParameter: ST_AxisGearInParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// gear in axis to master
+
+GearInEx := THIS^.GearIn(stGearInParameter.fGearRatio, stGearInParameter.eMasterId, stGearInParameter.fbMaster);
+
+IF GearInEx = E_OperationResult.eOperationResult_Ok THEN
+	stGearInPrm := stGearInParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GearOut" Id="{e17d2f81-ae4c-49bb-b05f-04b05f2bb2af}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an electronic axis gear-out using default parameter set.
+{attribute 'object_name' := 'GearOut'}
+METHOD GearOut : E_OperationResult
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// gear out axis from master
+
+// init result pessimistic
+GearOut := E_OperationResult.eOperationResult_NOk;
+
+// if stopping is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stGearOutPrm := stDefaultPrm.stGearOutPrm;
+eCommandRequest := E_MotionCommand.eMotionCommand_gearOut;
+GearOut := E_OperationResult.eOperationResult_Ok;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GearOutEx" Id="{230256ee-2686-4a3a-b3ae-a87a568eb9b7}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an electronic axis gear-out using specified parameter
+{attribute 'object_name' := 'GearOutEx'}
+METHOD GearOutEx : E_OperationResult
+VAR_IN_OUT
+	/// Parameter set to use
+	stGearOutParameter: ST_AxisGearOutParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// gear in axis to master
+
+GearOutEx := THIS^.GearOut();
+
+IF GearOutEx = E_OperationResult.eOperationResult_Ok THEN
+	stGearOutPrm := stGearOutParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="GearRatio" Id="{3fd768e7-c6ec-4cd2-8b30-4a9fbc1614e2}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's or set's the gear ratio for MC_GearInDyn.
+PROPERTY GearRatio : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{d0d52a2b-b7db-41db-abf4-bbeb7e46cc05}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[// return actual gear ratio
+GearRatio := stGearInPrm.fGearRatio;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{516ebbd0-a12e-4fd1-b339-a1360f9fbb34}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[// Updates the gear-ratio (only effective if GearIn was called bevore).
+stGearInPrm.fGearRatio := GearRatio;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Halt" Id="{09621473-70ac-427a-8ca2-b76fcd88467b}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis halt using default parameter
+{attribute 'object_name' := 'Halt'}
+METHOD Halt : E_OperationResult
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// halt axis
+
+// init result pessimistic
+Halt := E_OperationResult.eOperationResult_NOk;
+
+// if stopping is active return --> higher prio: stop
+IF eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stHaltPrm := stDefaultPrm.stHaltPrm;
+//ILog.AddLog('Request received: halt', Concat2('AxisDriver', INT_TO_STRING(THIS^.ID)), E_LogLevel.eLogLevelInformation);
+eCommandRequest := E_MotionCommand.eMotionCommand_halt;
+Halt := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="HaltEx" Id="{71b7d8a4-4c5a-441b-b93c-e66c38f5ba83}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis halt using specified parameter
+{attribute 'object_name' := 'HaltEx'}
+METHOD HaltEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stHaltParameter: ST_AxisHaltParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// halt axis
+
+HaltEx := THIS^.Halt();
+
+IF HaltEx = E_OperationResult.eOperationResult_Ok THEN
+	stHaltPrm := stHaltParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Home" Id="{89c2c27c-8e2a-48c3-ad6f-146c3e6ed266}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis home using default parameter
+{attribute 'object_name' := 'Home'}
+METHOD Home : E_OperationResult
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// home axis
+
+// init result pessimistic
+Home := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stHomingPrm := stDefaultPrm.stHomingPrm;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_home;
+Home := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Homed" Id="{6ca72627-94e4-4392-84a1-1d0ad03601e1}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Homed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{b33ace9f-1046-470c-8f95-38e648c1c158}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Homed:= fbAxisRef.Status.Homed;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="HomeEx" Id="{7d4828cc-5888-4204-9919-78ac90159f2e}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis home using specified parameter
+{attribute 'object_name' := 'HomeEx'}
+METHOD HomeEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stHomingParameter: ST_AxisHomingParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// home axis
+
+HomeEx := THIS^.Home();
+
+IF HomeEx = E_OperationResult.eOperationResult_Ok THEN
+	stHomingPrm := stHomingParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Homing" Id="{b518d735-036f-4eb8-b585-76de24bbb4a2}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Homing : BOOL]]></Declaration>
+      <Get Name="Get" Id="{e378d74c-c459-4c28-a7dd-43aa3a17f4fa}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Homing:= fbAxisRef.Status.Homing;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="IsSafetyCardActive" Id="{2a5ca1eb-40c2-4fdc-b4ad-5e1ed9d052bf}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY IsSafetyCardActive : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{80c5bb2d-f891-4b61-b27a-f5d47231e062}">
+        <Declaration><![CDATA[VAR
+	iTmp: INT;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bSafetyCardAct := FALSE;
+FOR iTmp := 0 TO 29 DO
+	IF stAX5xxxDiag.stDiagNumberList.arrDiagNumbers[iTmp] = 53506 THEN
+		bSafetyCardAct := TRUE;
+		EXIT;
+	END_IF
+END_FOR
+
+IsSafetyCardActive := bSafetyCardAct;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Jog" Id="{933c4c06-1b63-4df9-9615-95284b0ceecd}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis jog using default parameter
+/// This method must be called cyclic (otherwise jog Fwd/Bwd will be reset)
+{attribute 'object_name' := 'Jog'}
+METHOD Jog : E_OperationResult
+VAR_INPUT
+	bJogBackwards: BOOL;
+	bJogForward: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// jog axis
+
+// init result pessimistic
+Jog := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stJogPrm := stDefaultPrm.stJogPrm;
+stJogPrm.bJogBackwards := bJogBackwards;
+stJogPrm.bJogForward := bJogForward;
+
+IF stJogPrm.bJogBackwards OR stJogPrm.bJogForward THEN
+	eCommandRequest := E_MotionCommand.eMotionCommand_jog;
+END_IF
+
+Jog := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogAcc" Id="{ecd76168-1be1-480e-98f5-a617d4e2a13e}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis jog accelerating using default parameter
+/// This method must be called cyclic (otherwise jog Fwd/Bwd will be reset)
+{attribute 'object_name' := 'JogAcc'}
+METHOD JogAcc : E_OperationResult
+VAR_INPUT
+	bJogBackwards: BOOL;
+	bJogForward: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// jog axis acc
+
+// init result pessimistic
+JogAcc := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stJogAccPrm := stDefaultPrm.stJogAccPrm;
+stJogAccPrm.bJogBackwards := bJogBackwards;
+stJogAccPrm.bJogForward := bJogForward;
+
+IF stJogAccPrm.bJogBackwards OR stJogAccPrm.bJogForward THEN
+	eCommandRequest := E_MotionCommand.eMotionCommand_jogAcc;
+END_IF
+
+JogAcc := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogAccEx" Id="{5f4ff652-09e0-490b-a228-3779b153b398}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis jog accelerating using specified parameter
+{attribute 'object_name' := 'JogAccEx'}
+METHOD JogAccEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stJogAccParameter: ST_AxisJogAccParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// jog acc axis
+
+JogAccEx := THIS^.JogAcc(stJogAccParameter.bJogBackwards, stJogAccParameter.bJogForward);
+
+IF JogAccEx = E_OperationResult.eOperationResult_Ok THEN
+	stJogAccPrm := stJogAccParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogAccExVel" Id="{b6b9200b-ad97-47f4-bee4-5fdf178019e2}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis jog accelerating using default parameter
+/// This method must be called cyclic (otherwise jog Fwd/Bwd will be reset)
+{attribute 'object_name' := 'JogAccExVel'}
+METHOD JogAccExVel : E_OperationResult
+VAR_INPUT
+	bJogBackwards: BOOL;
+	bJogForward: BOOL;
+	/// Slow (starting) speed
+	fSlowSpeed: LREAL;
+	/// Fast end-speed
+	fFastSpeed: LREAL;
+	/// Time for ramp from slow to fast speed [ms]
+	fAccTime: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// jog axis acc
+
+// init result pessimistic
+JogAccExVel := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stJogAccPrm := stDefaultPrm.stJogAccPrm;
+stJogAccPrm.fSlowSpeed := fSlowSpeed;
+stJogAccPrm.fFastSpeed := fFastSpeed;
+stJogAccPrm.tAccTime := LREAL_TO_TIME(fAccTime);
+stJogAccPrm.bJogBackwards := bJogBackwards;
+stJogAccPrm.bJogForward := bJogForward;
+
+IF stJogAccPrm.bJogBackwards OR stJogAccPrm.bJogForward THEN
+	eCommandRequest := E_MotionCommand.eMotionCommand_jogAcc;
+END_IF
+
+JogAccExVel := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogEx" Id="{23c87c14-b5d1-44c2-b970-3fb453aea9fd}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis jog using specified parameter
+{attribute 'object_name' := 'JogEx'}
+METHOD JogEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stJogParameter: ST_AxisJogParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// jog axis
+
+JogEx := THIS^.Jog(stJogParameter.bJogBackwards, stJogParameter.bJogForward);
+
+IF JogEx = E_OperationResult.eOperationResult_Ok THEN
+	stJogPrm := stJogParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogExVel" Id="{0944c6b1-4d4b-4bec-8a26-b8435216dea4}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis jog using specified parameter
+{attribute 'object_name' := 'JogExVel'}
+METHOD JogExVel : E_OperationResult
+VAR_INPUT
+	bJogBackwards: BOOL;
+	bJogForward: BOOL;
+	/// Velocity
+	fVelocity: LREAL;
+	/// Modus
+	eMode: E_JogMode := E_JogMode.MC_JOGMODE_INCHING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// jog axis
+
+JogExVel := THIS^.Jog(bJogBackwards, bJogForward);
+
+IF JogExVel = E_OperationResult.eOperationResult_Ok THEN
+	stJogPrm := stDefaultPrm.stJogPrm;
+	stJogPrm.eMode := eMode;
+	stJogPrm.fVelocity := fVelocity;
+	stJogPrm.bJogBackwards := bJogBackwards;
+	stJogPrm.bJogForward := bJogForward;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="LastMcErrorId" Id="{b57cc26c-6fb0-4bd8-94f9-bccda7559d9f}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY LastMcErrorId : UDINT
+]]></Declaration>
+      <Get Name="Get" Id="{eff84cee-6b62-433f-b2f8-0e5f3c0e2a18}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[LastMcErrorId := nErrorID;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="LatchObjState" Id="{46bdbbee-a4d2-42d4-bd5e-cdb7fa4b8b99}">
+      <Declaration><![CDATA[METHOD LatchObjState : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fPosLatched := Position;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="LimitNeg" Id="{f90326b1-5b5f-4ac5-b45f-f565a3e15884}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY LimitNeg : LREAL]]></Declaration>
+      <Get Name="Get" Id="{81834707-494a-4ac7-ae8b-f721607812d0}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[LimitNeg := nLimitNeg;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{491a4791-7728-4fa1-b95d-9560ef262262}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nLimitNeg := LimitNeg;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="LimitPos" Id="{a9c633fa-92d7-4832-9156-a351f15dd5d2}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY LimitPos : LREAL]]></Declaration>
+      <Get Name="Get" Id="{2033d9d3-d8c8-47fc-8039-62ec460940e9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[LimitPos := nLimitPos;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{2a5881e6-6a3c-4dd5-a7ad-b89303beef00}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nLimitPos := LimitPos;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MasterAxisId" Id="{daa2627e-eb12-4cd2-ac94-8997992f70f8}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY MasterAxisId : E_Axis
+]]></Declaration>
+      <Get Name="Get" Id="{0552f62d-df4a-4fa6-837b-d71925e6dc4d}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MasterAxisId := eMasterAxisId;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MotionState" Id="{c6a733f4-8935-493b-9671-5ebc184d2ff9}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY MotionState : MC_AxisStates]]></Declaration>
+      <Get Name="Get" Id="{aa18d73b-e3e0-4f01-b146-b506e7bbcd04}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MotionState := fbAxisRef.Status.MotionState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MotorTemp" Id="{c23ad447-efff-4b21-9757-13e2819b96df}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual motor temp. [°C]
+PROPERTY MotorTemp : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{892e1ef7-525d-4765-9311-b36e522ae10d}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual motor temp. [°C]
+MotorTemp := INT_TO_LREAL(stIn.iMotorTemperature) / 10;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="MoveAbs" Id="{233a5974-10d6-4468-bfaa-e7299161be3f}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an absolute axis positioning using default parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveAbs'}
+METHOD MoveAbs : E_OperationResult
+VAR_INPUT
+	/// Position to move to
+	fPosition: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis abs
+
+// init result pessimistic
+MoveAbs := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovAbsPrm := stDefaultPrm.stMovAbsPrm;
+stMovAbsPrm.fPosition := fPosition;
+
+fPosRequest:=  fPosition;
+eCommandRequest := E_MotionCommand.eMotionCommand_moveAbs;
+MoveAbs := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAbsEx" Id="{ed28b89b-3140-4c26-9900-f300b8c6b59c}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an absolute axis positioning using specified parameter
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveAbsEx'}
+METHOD MoveAbsEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stMovAbsParameter: ST_AxisMoveAbsParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis abs
+
+MoveAbsEx := THIS^.MoveAbs(stMovAbsParameter.fPosition);
+
+IF MoveAbsEx = E_OperationResult.eOperationResult_Ok THEN
+	stMovAbsPrm := stMovAbsParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAbsExVel" Id="{4c32bd4b-d8f3-4cfa-94e2-cfb237b6febf}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an absolute axis positioning using input parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveAbsExVel'}
+METHOD MoveAbsExVel : E_OperationResult
+VAR_INPUT
+	/// Position to move to
+	fPosition: LREAL;
+	/// Speed
+	fVelocity: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis abs
+
+// init result pessimistic
+MoveAbsExVel := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovAbsPrm := stDefaultPrm.stMovAbsPrm;
+stMovAbsPrm.fPosition := fPosition;
+stMovAbsPrm.fVelocity := fVelocity;
+
+fPosRequest:=  fPosition;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_moveAbs;
+MoveAbsExVel := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAdd" Id="{011a44be-9077-418d-8fde-5a1a3c87454c}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an additive axis positioning using default parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveAdd'}
+METHOD MoveAdd : E_OperationResult
+VAR_INPUT
+	/// Distance
+	fDistance: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis add
+
+// init result pessimistic
+MoveAdd := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovAddPrm := stDefaultPrm.stMovAddPrm;
+stMovAddPrm.fDistance := fDistance;
+
+fPosRequest:=  fbAxisRef.NcToPlc.ActPos+fDistance;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_moveAdd;
+MoveAdd := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveAddEx" Id="{897e5451-6b33-42f3-92d6-4bdc4716af48}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an additive axis positioning using specified parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveAddEx'}
+METHOD MoveAddEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stMovAddParameter: ST_AxisMoveAddParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis add
+
+MoveAddEx := THIS^.MoveAdd(stMovAddParameter.fDistance);
+
+IF MoveAddEx = E_OperationResult.eOperationResult_Ok THEN
+	stMovAddPrm := stMovAddParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveMod" Id="{e8fe4bbf-2152-4619-8515-5ceeee49cffe}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an modulo axis positioning using default parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveMod'}
+METHOD MoveMod : E_OperationResult
+VAR_INPUT
+	/// Position to move to
+	fPosition: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis mod
+
+// init result pessimistic
+MoveMod := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovModPrm := stDefaultPrm.stMovModPrm;
+stMovModPrm.fPosition := fPosition;
+
+fPosRequest:=  fPosition;
+eCommandRequest := E_MotionCommand.eMotionCommand_moveMod;
+MoveMod := E_OperationResult.eOperationResult_Ok;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveModEx" Id="{6c7a82cc-1bcc-4f9f-b000-0d1ca13e6532}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an modulo axis positioning using specified parameter
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveModEx'}
+METHOD MoveModEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stMovModParameter: ST_AxisMoveModParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis mod
+
+MoveModEx := THIS^.MoveMod(stMovModParameter.fPosition);
+
+IF MoveModEx = E_OperationResult.eOperationResult_Ok THEN
+	stMovModPrm := stMovModParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveRel" Id="{e52cf093-e4e2-4f32-9376-bc393dd7e592}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an relative axis positioning using default parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveRel'}
+METHOD MoveRel : E_OperationResult
+VAR_INPUT
+	/// Distance
+	fDistance: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis rel
+
+// init result pessimistic
+MoveRel := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovRelPrm := stDefaultPrm.stMovRelPrm;
+stMovRelPrm.fDistance := fDistance;
+
+fPosRequest:=  fbAxisRef.NcToPlc.ActPos+fDistance;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_moveRel;
+MoveRel := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveRelEx" Id="{9354d2e7-420a-4d5d-b65f-0c05acd0f136}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an relative axis positioning using specified parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveRelEx'}
+METHOD MoveRelEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stMovRelParameter: ST_AxisMoveRelParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis rel
+
+MoveRelEx := THIS^.MoveRel(stMovRelParameter.fDistance);
+
+IF MoveRelEx = E_OperationResult.eOperationResult_Ok THEN
+	stMovRelPrm := stMovRelParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveRelExVel" Id="{70811ffc-c28a-431f-8db3-50279977b2b4}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an relative axis positioning using specified parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveRelExVel'}
+METHOD MoveRelExVel : E_OperationResult
+VAR_INPUT
+	/// Distance to move to
+	fDistance: LREAL;
+	/// Speed
+	fVelocity: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis rel
+
+// init result pessimistic
+MoveRelExVel := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovRelPrm := stDefaultPrm.stMovRelPrm;
+stMovRelPrm.fDistance := fDistance;
+stMovRelPrm.fVelocity := fVelocity;
+
+fPosRequest:=  fbAxisRef.NcToPlc.ActPos+fDistance;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_moveRel;
+MoveRelExVel := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveVel" Id="{a65096c0-bfa8-49c7-9073-ea9c6de1c9ff}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an velocity axis movement using default parameter set.
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveVel'}
+METHOD MoveVel : E_OperationResult
+VAR_INPUT
+	/// Velocity
+	fVelocity: LREAL;
+	/// Direction
+	eDirection: MC_Direction;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis vel
+
+// init result pessimistic
+MoveVel := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stMovVelPrm := stDefaultPrm.stMovVelPrm;
+stMovVelPrm.fVelocity := fVelocity;
+stMovVelPrm.eDirection := eDirection;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_moveVel;
+MoveVel := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveVelEx" Id="{fdc3042d-9c44-4e07-bc36-7736bb199399}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Performs an velocity axis movement using specified parameter
+/// This motion is capable to overlay (max. 2 parallel at one time)
+{attribute 'object_name' := 'MoveVelEx'}
+METHOD MoveVelEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stMovVelParameter: ST_AxisMoveVelParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// move axis abs
+
+MoveVelEx := THIS^.MoveVel(stMovVelParameter.fVelocity, stMovVelParameter.eDirection);
+
+IF MoveVelEx = E_OperationResult.eOperationResult_Ok THEN
+	stMovVelPrm := stMovVelParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Moving" Id="{20dead38-25ca-4a4b-a9ca-c5f658a207a4}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Moving : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{6726fdb2-e3bc-4f73-bea7-0d9e76e97d67}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Moving := fbAxisRef.Status.Moving;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="negTorqueLimit" Id="{7f561d03-ee4d-4c3d-aed6-ddd5dab1d27b}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY negTorqueLimit : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{aa243157-3f59-4f1c-884f-55a4ce4de64b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+negTorqueLimit := INT_TO_LREAL(stOut.iNegativeTorqueLimitValue) * stDefaultPrm.stGeneralPrm.fTorqueFactor;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{dfefa845-1d26-412a-bd70-a851684eec9e}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[stOut.iNegativeTorqueLimitValue := ABS(LREAL_TO_INT(negTorqueLimit/stDefaultPrm.stGeneralPrm.fTorqueFactor));]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="NotMoving" Id="{29f4a4a2-5da8-4e47-803e-77755bd07519}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY NotMoving : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{2576f89d-460e-4db5-8650-681362bdac64}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[NotMoving := fbAxisRef.Status.NotMoving;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Override" Id="{289250ed-0dde-4df4-bd88-64d149562d56}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{071d7c86-f274-41db-8039-825f8304bb8d}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Override := fbPower.Override;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{32da836f-15a2-4732-b911-808a498b5b01}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fbPower.Override := Override;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="posTorqueLimit" Id="{67db7ee6-18aa-49a7-8ff4-ca2ea78a5724}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY posTorqueLimit : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{d175a24a-6eb7-49ba-ba77-4a80bbef77bb}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+posTorqueLimit := INT_TO_LREAL(stOut.iPositiveTorqueLimitValue) * stDefaultPrm.stGeneralPrm.fTorqueFactor;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{7090aab8-d12c-4775-a24e-98c4ae9fe017}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[stOut.iPositiveTorqueLimitValue := ABS(LREAL_TO_INT(posTorqueLimit/stDefaultPrm.stGeneralPrm.fTorqueFactor));]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="Reset" Id="{5f70ca86-af08-4351-9508-32c132c3c4ee}">
+      <Declaration><![CDATA[/// Reset component logic
+{attribute '' := ''}
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+// reset axis
+eCommandRequest := E_MotionCommand.eMotionCommand_reset;
+eState := E_ComponentState.eComponentState_resetting;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{5c0b4fb3-13f9-4d2a-a88a-97f91cf21a46}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+// return here as long axis ref not set
+IF NOT __ISVALIDREF(fbAxisRef) THEN
+	sClearText := 'Axis ref not set!';
+	RETURN;
+END_IF
+
+// switch case request
+CASE eCommandRequest OF	
+	/// No command
+	E_MotionCommand.eMotionCommand_none:
+	
+	/// Reset axis
+	E_MotionCommand.eMotionCommand_reset:
+		IF (eCommandExecute <> E_MotionCommand.eMotionCommand_stop AND eCommandExecute <> E_MotionCommand.eMotionCommand_halt) OR fbAxisRef.Status.StandStill THEN
+			eCommandExecute := eCommandRequest;
+			eCommandRequest := E_MotionCommand.eMotionCommand_none;
+		END_IF
+	
+	/// Axis halt (default stopping method)
+	E_MotionCommand.eMotionCommand_halt:
+		IF eCommandExecute <> E_MotionCommand.eMotionCommand_stop THEN
+			eCommandExecute := eCommandRequest;
+			eCommandRequest := E_MotionCommand.eMotionCommand_none;
+		END_IF;
+	
+	/// Axis stop (needs reset before next motion command)
+	E_MotionCommand.eMotionCommand_stop:
+		eCommandExecute := eCommandRequest;
+		eCommandRequest := E_MotionCommand.eMotionCommand_none;
+	
+	/// other commands
+	E_MotionCommand.eMotionCommand_home,
+	E_MotionCommand.eMotionCommand_setPos,
+	E_MotionCommand.eMotionCommand_jog,
+	E_MotionCommand.eMotionCommand_jogAcc,
+	E_MotionCommand.eMotionCommand_moveAbs,
+	E_MotionCommand.eMotionCommand_moveAdd,
+	E_MotionCommand.eMotionCommand_moveRel,
+	E_MotionCommand.eMotionCommand_moveMod,
+	E_MotionCommand.eMotionCommand_moveVel,
+	E_MotionCommand.eMotionCommand_torque,
+	E_MotionCommand.eMotionCommand_gearIn,
+	E_MotionCommand.eMotionCommand_gearOut,
+	E_MotionCommand.eMotionCommand_touchProbe:
+		// wait for active command none and axis ready
+		IF eCommandExecute = eMotionCommand_none THEN
+			eCommandExecute := eCommandRequest;
+			eCommandRequest := E_MotionCommand.eMotionCommand_none;
+		ELSE
+			eCommandRequest := E_MotionCommand.eMotionCommand_none;
+		END_IF
+END_CASE
+
+// call workflows 
+WfDiagnostic();
+WfPower();
+WfReset();
+WfHome();
+WfSetPos();
+WfJog();
+WfJogAcc();
+WfMovAbs();
+WfMovAdd();
+WfMovRel();
+WfMovMod();
+WfMovVel();
+WfGearIn();
+WfGearOut();
+WfHalt();
+WfStop();
+WfErrorHandling();
+
+// set clear text
+IF eState <> E_ComponentState.eComponentState_error THEN
+	sClearText := SEL(fbAxisRef.Status.Operational, 'Antrieb nicht aktiviert!', Concat('Antrieb Status: ', StateAsString));
+ELSE
+	sClearText := Concat('Fehler Antrieb, FehlerNr: ', UDINT_TO_STRING(nErrorID));
+	// try get details
+	IF eAxisType = E_AxisType.AX5xxx THEN
+		sMsg := stAX5xxxDiag.strDiagMessage; // display diag msg
+		FOR ii := 0 TO 2 DO	// add first 3 error codes 
+			sMsg := Concat3(sMsg, ', ', UDINT_TO_STRING(stAX5xxxDiag.stDiagNumberList.arrDiagNumbers[ii]));
+		END_FOR
+		sClearText := sMsg;
+	END_IF
+END_IF
+
+// Ausgabedaten
+Error := (eState = E_ComponentState.eComponentState_error);
+Position := fbAxisRef.NcToPlc.ActPos;
+
+CheckLatchState();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetAxisReference" Id="{57e5f225-31c0-4cf9-a03d-da2db2c0b7c6}" FolderPath="Factory\">
+      <Declaration><![CDATA[/// Set axis reference
+{attribute 'object_name' := 'SetAxisReference'}
+METHOD SetAxisReference
+VAR_IN_OUT
+	/// NC Axis reference
+	fbRefAxis: AXIS_REF;
+	/// Additional inputs from axis
+	stRefIn: ST_AxisIn;
+	/// Additional outputs to axis
+	stRefOut: ST_AxisOut;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbAxisRef REF= fbRefAxis;
+stIn REF= stRefIn;
+stOut REF= stRefOut;
+
+DefaultParameter.stHomingPrm.bCalibrationCam REF= stIn.bCalibrationCam;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetPos" Id="{aea8e856-54aa-434b-a2cf-cd07981ea8e1}">
+      <Declaration><![CDATA[/// Set axis position
+{attribute 'object_name' := 'SetPos'}
+METHOD SetPos : E_OperationResult
+VAR_INPUT
+	fPosition: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// set axis pos
+
+// init result pessimistic
+SetPos := E_OperationResult.eOperationResult_NOk;
+
+// if stopping or resetting is active return --> higher prio
+IF eCommandExecute = E_MotionCommand.eMotionCommand_reset OR eCommandExecute = E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+stSetPosPrm := stDefaultPrm.stSetPosPrm;
+stSetPosPrm.fPosition := fPosition;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_setPos;
+SetPos := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetPosEx" Id="{6ddbd651-f87c-4e17-b50a-0628666dd5ee}">
+      <Declaration><![CDATA[/// Set axis position, extended method with all options
+{attribute 'object_name' := 'SetPosEx'}
+METHOD SetPosEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stSetPosParameter: ST_AxisSetPosParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// set axis pos
+
+SetPosEx := THIS^.SetPos(stSetPosParameter.fPosition);
+
+IF SetPosEx = E_OperationResult.eOperationResult_Ok THEN
+	stSetPosPrm := stSetPosParameter;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetSecondPosFeedback" Id="{15d6530d-c100-47de-93fc-eac03de79116}" FolderPath="Factory\">
+      <Declaration><![CDATA[METHOD SetSecondPosFeedback
+VAR_INPUT	
+	PositionBias	: LREAL;
+	FeedConstant	: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fPositionBias := PositionBias;
+fFeedConstant := FeedConstant;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Stop" Id="{91578dc8-d645-4e89-ace5-0aca5dab4811}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis stop using default parameter
+{attribute 'object_name' := 'Stop'}
+METHOD Stop : E_OperationResult
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// stop axis
+
+stStopPrm := stDefaultPrm.stStopPrm;
+
+eCommandRequest := E_MotionCommand.eMotionCommand_stop;
+Stop := E_OperationResult.eOperationResult_Ok;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StopEx" Id="{722b9897-dcdd-4ce2-9a8a-f42c75dac49b}" FolderPath="MotionCommands\">
+      <Declaration><![CDATA[/// Axis stop using specified parameter
+{attribute 'object_name' := 'StopEx'}
+METHOD StopEx : E_OperationResult
+VAR_INPUT
+	/// Parameter set to use
+	stStopParameter: ST_AxisStopParameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// stop axis
+
+StopEx := THIS^.Stop();
+stStopPrm := stStopParameter;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TargetReached" Id="{1c731dae-4c5f-48c3-ba78-f4975e837f39}">
+      <Declaration><![CDATA[METHOD TargetReached : BOOL
+VAR_INPUT
+	fWindow: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TargetReached := ABS(fbAxisRef.NcToPlc.Actpos - fPosRequest) < fWindow;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TargetReachedMod" Id="{8feedbbc-6623-433f-b630-3138c2c1d417}">
+      <Declaration><![CDATA[METHOD TargetReachedMod : BOOL
+VAR_INPUT
+	fWindow: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TargetReachedMod := ABS(fbAxisRef.NcToPlc.ModuloActPos - fPosRequest) < fWindow;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Torque" Id="{6e65c904-064c-4433-8b47-a68ca636fb29}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Actual torque [Nm]
+PROPERTY Torque : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{f8c0c3fc-4c0a-419c-b42c-9d168c56be69}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// Actual torque [Nm]
+Torque := INT_TO_LREAL(stIn.iTorqueFeedbackValue) * stDefaultPrm.stGeneralPrm.fTorqueFactor;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="TorqueLimit" Id="{46d86234-054d-42eb-a163-911ce7304896}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// The torque limit for both directions. [Nm]
+PROPERTY TorqueLimit : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{78dd6e95-3553-4204-9017-c892aa2e38fe}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[/// The torque limit for both directions. [1/10%]
+TorqueLimit := INT_TO_LREAL(stOut.iBipolarTorqueLimitValue) * stDefaultPrm.stGeneralPrm.fTorqueFactor;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{b636e966-f444-4ecb-8cb5-581e02274f88}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[stOut.iBipolarTorqueLimitValue := ABS(LREAL_TO_INT(TorqueLimit/stDefaultPrm.stGeneralPrm.fTorqueFactor));]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Velocity" Id="{ad5bd30d-a6e3-4e92-9816-cfae2c5f4898}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Velocity : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{17f92555-34b6-4e7a-8e2d-ee807c7017cf}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF __ISVALIDREF(fbAxisRef) THEN
+	Velocity  := fbAxisRef.NcToPlc.ActVelo;	
+END_IF
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Action Name="WfDiagnostic" Id="{0f946c21-7bfc-41f6-9e4e-dee3bd271cb6}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow axis diagnostic
+
+// run axis FBs
+fbAxisRef.ReadStatus();
+
+// return in case of reset
+(*IF eCommandExecute = E_MotionCommand.eMotionCommand_reset THEN
+	RETURN;
+END_IF*)
+
+// diagnostics AX5xxx
+IF eAxisType = E_AxisType.AX5xxx THEN
+	// Diag + Reset of AX5000
+	// call drive diag FBs
+	fbAX5xxxDiag(
+		IPCNetID	:= IPCNetID,
+		Axis		:= fbAxisRef,
+		stAX5000Diag:= stAX5xxxDiag);
+
+	// clear reset/diag request if not active
+	fbAX5xxxDiag.Reset := fbAX5xxxDiag.Reset AND fbAX5xxxDiag.ResetAct;
+	fbAX5xxxDiag.GetDiag := fbAX5xxxDiag.GetDiag AND fbAX5xxxDiag.DiagAct;
+
+	//IF fbAX5xxxDiag.Error THEN... / nErrorId := fbAX5xxxDiag.AdsErrId; -> WfErrorHandling
+	stDriveRef := fbAX5xxxDiag.DriveRef;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfErrorHandling" Id="{f48dcc24-6910-4189-8a0f-50fb06ffb6e8}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[// chk axis operational
+tonChkOperation(IN := (eState = E_ComponentState.eComponentState_running AND fbPower.Enable AND NOT fbAxisRef.Status.Operational), PT := T#5S);
+IF tonChkOperation.Q THEN
+	eState := E_ComponentState.eComponentState_error;
+END_IF
+
+// run error trigger
+rtrigError(CLK := fbAxisRef.Status.Error OR stAX5xxxDiag.bAxisError OR eState = E_ComponentState.eComponentState_error);
+IF rtrigError.Q THEN
+	eState := E_ComponentState.eComponentState_error;
+	IF eAxisType = E_AxisType.AX5xxx THEN
+		bErrDiagActive := TRUE;	
+		fbAX5xxxDiag.GetDiag := TRUE; // get diag for AX5xxx
+	ELSE
+		WriteError(E_Event.eEvent_none ,Concat4('Fehler Antrieb ', Name, ', FehlerNr: ', UDINT_TO_STRING(nErrorId)));
+	END_IF
+END_IF
+
+// run AX5000 diag 
+ftrigDiag(CLK := fbAX5xxxDiag.DiagAct);
+IF ftrigDiag.Q AND bErrDiagActive THEN
+	bErrDiagActive := FALSE;
+	IF fbAxisRef.Status.Error OR IsSafetyCardActive THEN // HW error
+		IF bSafetyCardAct THEN
+			sMsg := Concat(Name, ': Safety Card aktiv'); // display diag msg
+		ELSE
+			sMsg := Concat3(Name, ': ', stAX5xxxDiag.strDiagMessage); // display diag msg
+			FOR ii := 0 TO 2 DO	// add first 3 error codes 
+				sMsg := Concat3(sMsg, ', ', UDINT_TO_STRING(stAX5xxxDiag.stDiagNumberList.arrDiagNumbers[ii]));
+			END_FOR
+		END_IF		
+		WriteError(E_Event.eEvent_none , sMsg);		
+
+	ELSE
+		sMsg := Concat4('Achse ', INT_TO_STRING(eAxisId), ': ', sLastError);
+		sMsg := Concat3(sMsg, ' / FehlerNr: ', UDINT_TO_STRING(nErrorId));
+		WriteError(E_Event.eEvent_none , sMsg);			
+	END_IF
+END_IF;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfGearIn" Id="{43c657a8-8de0-4131-bdbf-bc87e5896a3a}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow gear in
+
+// call fb cyclic
+fbGearIn.GearRatio := stGearInPrm.fGearRatio;
+fbGearIn.Acceleration := stGearInPrm.fAcceleration;
+fbGearIn.Deceleration := stGearInPrm.fDeceleration;
+fbGearIn.Jerk := stGearInPrm.fJerk;
+fbGearIn.BufferMode := stGearInPrm.eBufferMode;
+fbGearIn.Options := stGearInPrm.stOptions;
+IF __ISVALIDREF(stGearInPrm.fbMaster) THEN
+	fbGearIn(Master := stGearInPrm.fbMaster, Slave := fbAxisRef);	
+END_IF
+
+// FB diagnostic and reset 
+IF fbGearIn.Enable AND NOT fbGearIn.Busy THEN
+	IF fbGearIn.Error THEN			
+		nErrorId := fbGearIn.ErrorID;
+		sLastError := 'Fehler Antrieb Koppeln.';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbGearIn.Enable := FALSE;
+END_IF
+
+// set master axis ID
+eMasterAxisId := SEL(fbAxisRef.Status.Coupled, eAxisId, stGearInPrm.eMasterId);
+
+// return if other command active	
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_gearIn THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Koppeln';		
+IF NOT fbGearIn.InGear THEN
+	fbGearIn.Enable := TRUE;
+END_IF
+eCommandExecute := E_MotionCommand.eMotionCommand_none;
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfGearOut" Id="{431674c7-e0eb-4754-8b4d-ab99a8cb7dc7}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow gear out
+
+// call fb cyclic
+fbGearOut.Options := stGearOutPrm.stOptions;
+fbGearOut(Slave := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbGearOut.Execute AND NOT fbGearOut.Busy THEN
+	IF fbGearOut.Error THEN
+		nErrorId := fbGearOut.ErrorID;
+		sLastError := 'Fehler Antrieb Entkoppeln.';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbGearOut.Execute := FALSE;
+END_IF
+		
+// return if not in gear out
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_gearOut THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Entoppeln';
+IF stGearOutPrm.bHaltAxis THEN
+	stHaltPrm.eBufferMode := MC_Aborting;
+	stHaltPrm.fDeceleration := stGearInPrm.fDeceleration;
+	stHaltPrm.fJerk := stGearInPrm.fJerk;
+	//stHaltPrm.stOptions := stGearInPrm.stOptions;
+	THIS^.HaltEx(stHaltPrm);
+ELSE
+	fbGearOut(Slave := fbAxisRef, Execute := TRUE);	
+END_IF
+eCommandExecute := E_MotionCommand.eMotionCommand_none;]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfHalt" Id="{0c3bfb0a-13aa-4a52-96fd-b977d84235c4}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow halting
+
+// call fb cyclic
+fbHalt.BufferMode := stHaltPrm.eBufferMode;
+fbHalt.Deceleration := stHaltPrm.fDeceleration;
+fbHalt.Jerk := stHaltPrm.fJerk;
+fbHalt.Options := stHaltPrm.stOptions;
+fbHalt(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbHalt.Execute AND NOT fbHalt.Busy THEN
+	IF fbHalt.Error THEN
+		nErrorId := fbHalt.ErrorID;
+		sLastError := 'Fehler bei Antrieb Halt.';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbHalt.Execute := FALSE;
+END_IF
+		
+// return if not in halting
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_halt THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Halt';
+fbHalt(Axis := fbAxisRef, Execute := TRUE);
+eCommandExecute := E_MotionCommand.eMotionCommand_none;
+IF fbAxisRef.Status.StandStill THEN
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfHome" Id="{10c9a26e-6241-4d80-8c9c-b257f4ed4c06}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow homing
+
+// call fb cyclic
+fbHoming.bCalibrationCam := SEL(__ISVALIDREF(stHomingPrm.bCalibrationCam), FALSE, stHomingPrm.bCalibrationCam);
+fbHoming.BufferMode := stHomingPrm.eBufferMode;
+fbHoming.HomingMode := stHomingPrm.eHomingMode;
+fbHoming.Options := stHomingPrm.stOptions;
+fbHoming.Position := stHomingPrm.fPosition;
+fbHoming(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbHoming.Execute AND NOT fbHoming.Busy THEN
+	IF fbHoming.Error THEN
+		nErrorId := fbHoming.ErrorID;
+		sLastError := 'Fehler Antrieb GRST';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbHoming.Execute := FALSE;
+END_IF
+		
+// return if not in homing
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_home THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb GRST';		
+IF NOT fbHoming.Busy THEN
+	fbHoming(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+END_IF
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfJog" Id="{77ae3d37-761d-4f02-a99c-a00fc2f077ad}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow jog axis
+
+// call fb cyclic
+fbjog.JogBackwards := stJogPrm.bJogBackwards;
+fbjog.JogForward := stJogPrm.bJogForward;
+fbjog.Acceleration := stJogPrm.fAcceleration;
+fbjog.Deceleration := stJogPrm.fDeceleration;
+fbjog.Jerk := stJogPrm.fJerk;
+fbjog.Mode := stJogPrm.eMode;
+fbjog.Position := stJogPrm.fPosition;
+fbjog.Velocity := stJogPrm.fVelocity;
+fbjog(Axis := fbAxisRef);
+
+// reset jog F/B each cycle (stop's axis if Jog/JogEx method isn't called anymore)
+stJogPrm.bJogBackwards := FALSE;
+stJogPrm.bJogForward := FALSE;
+
+// return if not in jog
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_jog THEN
+	RETURN;
+END_IF
+
+// case of jog error
+IF fbjog.Error  THEN
+	nErrorId := fbjog.ErrorID;
+	sLastError := 'Fehler Antrieb Tippen.';
+	eState := E_ComponentState.eComponentState_error;			
+END_IF		
+
+eCommandExecute := E_MotionCommand.eMotionCommand_none;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfJogAcc" Id="{556c1f94-d459-471b-9f2f-28822498ed13}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow jog axis acc
+
+// call fb's cyclic
+fbJogAcc.Direction := MC_Current_Direction;
+fbJogAcc.Direction := SEL(stJogAccPrm.bJogForward, MC_Negative_Direction, MC_Positive_Direction);
+fbJogAcc.Acceleration := stJogAccPrm.fAcceleration;
+fbJogAcc.Deceleration := stJogAccPrm.fDeceleration;
+fbJogAcc.Jerk := stJogAccPrm.fJerk;
+fbJogAcc.BufferMode := stJogAccPrm.eBufferMode;
+fbJogAcc.Options := stJogAccPrm.stOptions;
+fbJogAcc(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbJogAcc.Execute AND (NOT fbJogAcc.Busy OR fbJogAcc.InVelocity) THEN
+	IF fbJogAcc.Error THEN
+		nErrorId := fbJogAcc.ErrorID;
+		sLastError := 'Antrieb Tippen Beschleunigung.';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbJogAcc.Velocity := 0;
+	fbJogAcc.Execute := FALSE;
+END_IF
+
+// measure jog time to capture speed at the according ramp positon
+tonJogAcc.IN := stJogAccPrm.bJogForward OR stJogAccPrm.bJogBackwards;
+tonJogAcc.PT := stJogAccPrm.tAccTime;
+tonJogAcc();
+
+// reset jog F/B each cycle (stop's axis if Jog/JogEx method isn't called anymore)
+stJogAccPrm.bJogBackwards := FALSE;
+stJogAccPrm.bJogForward := FALSE;
+
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_jogAcc THEN
+	RETURN;
+END_IF
+
+// halt axis if jogAcc timer is disabled
+IF NOT tonJogAcc.IN THEN
+	fbJogAcc.Velocity := 0;
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+	stHaltPrm.eBufferMode := MC_Aborting;
+	stHaltPrm.fDeceleration := stJogAccPrm.fDeceleration;
+	stHaltPrm.fJerk := stJogAccPrm.fJerk;
+	stHaltPrm.stOptions := stJogAccPrm.stOptions;
+	THIS^.HaltEx(stHaltPrm);	
+END_IF
+
+sClearText := Concat('Antrieb Tippen Beschleunigung, Geschwindigkeit: ', LREAL_TO_STRING(fbJogAcc.Velocity));
+IF fbJogAcc.Velocity < stJogAccPrm.fFastSpeed AND NOT fbJogAcc.Busy THEN
+	// ramp = Kx + d
+	fbJogAcc.Velocity := (TIME_TO_LREAL(tonJogAcc.ET) * ((stJogAccPrm.fFastSpeed - stJogAccPrm.fSlowSpeed)/TIME_TO_LREAL(tonJogAcc.PT))) + stJogAccPrm.fSlowSpeed;
+	// limit speed	
+	fbJogAcc.Velocity := LIMIT(stJogAccPrm.fSlowSpeed, fbJogAcc.Velocity, stJogAccPrm.fFastSpeed);
+	fbJogAcc(Axis := fbAxisRef, Execute := TRUE);	
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfMovAbs" Id="{878c9aa9-bb75-4496-ad28-f674e211b42d}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow move axis abs
+
+// call fb's cyclic
+fbMovAbs1.Position := stMovAbsPrm.fPosition;
+fbMovAbs1.Velocity := stMovAbsPrm.fVelocity;
+fbMovAbs1.Acceleration := stMovAbsPrm.fAcceleration;
+fbMovAbs1.Deceleration := stMovAbsPrm.fDeceleration;
+fbMovAbs1.Jerk := stMovAbsPrm.fJerk;
+fbMovAbs1.BufferMode := stMovAbsPrm.eBufferMode;
+fbMovAbs1.Options := stMovAbsPrm.stOptions;
+fbMovAbs1(Axis := fbAxisRef);
+
+fbMovAbs2.Position := stMovAbsPrm.fPosition;
+fbMovAbs2.Velocity := stMovAbsPrm.fVelocity;
+fbMovAbs2.Acceleration := stMovAbsPrm.fAcceleration;
+fbMovAbs2.Deceleration := stMovAbsPrm.fDeceleration;
+fbMovAbs2.Jerk := stMovAbsPrm.fJerk;
+fbMovAbs2.BufferMode := stMovAbsPrm.eBufferMode;
+fbMovAbs2.Options := stMovAbsPrm.stOptions;
+fbMovAbs2(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbMovAbs1.Execute AND NOT fbMovAbs1.Busy THEN
+	IF fbMovAbs1.Error THEN
+		nErrorId := fbMovAbs1.ErrorID;
+		sLastError := 'Antrieb Positionierung Absolut (FB1)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovAbs1.Execute := FALSE;
+END_IF
+IF fbMovAbs2.Execute AND NOT fbMovAbs2.Busy THEN
+	IF fbMovAbs2.Error THEN
+		nErrorId := fbMovAbs2.ErrorID;
+		sLastError := 'Antrieb Positionierung Absolut (FB2)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovAbs2.Execute := FALSE;
+END_IF
+
+// return if not in move abs
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_moveAbs THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Positionierung Absolut';		
+IF NOT fbMovAbs1.Busy THEN
+	fbMovAbs1(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+ELSIF NOT fbMovAbs2.Busy THEN
+	fbMovAbs2(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+ELSE
+	nErrorId := 0;
+	sLastError := 'Fehler Antrieb Positionierung Absolut. Kein Baustein bereit';
+	eState := E_ComponentState.eComponentState_error;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfMovAdd" Id="{95504bf6-29f7-41c8-b3d9-b188fd04a89a}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow move axis add
+
+// call fb's cyclic
+fbMovAdd1.Distance := stMovAddPrm.fDistance;
+fbMovAdd1.Velocity := stMovAddPrm.fVelocity;
+fbMovAdd1.Acceleration := stMovAddPrm.fAcceleration;
+fbMovAdd1.Deceleration := stMovAddPrm.fDeceleration;
+fbMovAdd1.Jerk := stMovAddPrm.fJerk;
+fbMovAdd1.BufferMode := stMovAddPrm.eBufferMode;
+fbMovAdd1.Options := stMovAddPrm.stOptions;
+fbMovAdd1(Axis := fbAxisRef);
+
+fbMovAdd2.Distance := stMovAddPrm.fDistance;
+fbMovAdd2.Velocity := stMovAddPrm.fVelocity;
+fbMovAdd2.Acceleration := stMovAddPrm.fAcceleration;
+fbMovAdd2.Deceleration := stMovAddPrm.fDeceleration;
+fbMovAdd2.Jerk := stMovAddPrm.fJerk;
+fbMovAdd2.BufferMode := stMovAddPrm.eBufferMode;
+fbMovAdd2.Options := stMovAddPrm.stOptions;
+fbMovAdd2(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbMovAdd1.Execute AND NOT fbMovAdd1.Busy THEN
+	IF fbMovAdd1.Error THEN
+		nErrorId := fbMovAdd1.ErrorID;
+		sLastError := 'Antrieb Positionierung Additiv (FB1)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovAdd1.Execute := FALSE;
+END_IF
+IF fbMovAdd2.Execute AND NOT fbMovAdd2.Busy THEN
+	IF fbMovAdd2.Error THEN
+		nErrorId := fbMovAdd2.ErrorID;
+		sLastError := 'Antrieb Positionierung Additiv (FB2)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovAdd2.Execute := FALSE;
+END_IF
+
+// return if not in move add
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_moveAdd THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Positionierung Additiv';
+IF NOT fbMovAdd1.Busy THEN
+	fbMovAdd1(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;	
+ELSIF NOT fbMovAdd2.Busy THEN
+	fbMovAdd2(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;	
+ELSE
+	nErrorId := 0;
+	sLastError := 'Fehler Antrieb Positionierung Additiv. Kein Baustein bereit.';
+	eState := E_ComponentState.eComponentState_error;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfMovMod" Id="{1dac60d6-bfa3-4280-8e4c-18139b51135a}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow move axis mod
+
+// call fb's cyclic
+fbMovMod1.Position := stMovModPrm.fPosition;
+fbMovMod1.Direction := stMovModPrm.eDirection;
+fbMovMod1.Velocity := stMovModPrm.fVelocity;
+fbMovMod1.Acceleration := stMovModPrm.fAcceleration;
+fbMovMod1.Deceleration := stMovModPrm.fDeceleration;
+fbMovMod1.Jerk := stMovModPrm.fJerk;
+fbMovMod1.BufferMode := stMovModPrm.eBufferMode;
+fbMovMod1.Options := stMovModPrm.stOptions;
+fbMovMod1(Axis := fbAxisRef);
+
+fbMovMod2.Position := stMovModPrm.fPosition;
+fbMovMod2.Direction := stMovModPrm.eDirection;
+fbMovMod2.Velocity := stMovModPrm.fVelocity;
+fbMovMod2.Acceleration := stMovModPrm.fAcceleration;
+fbMovMod2.Deceleration := stMovModPrm.fDeceleration;
+fbMovMod2.Jerk := stMovModPrm.fJerk;
+fbMovMod2.BufferMode := stMovModPrm.eBufferMode;
+fbMovMod2.Options := stMovModPrm.stOptions;
+fbMovMod2(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbMovMod1.Execute AND NOT fbMovMod1.Busy THEN
+	IF fbMovMod1.Error THEN
+		nErrorId := fbMovMod1.ErrorID;
+		sLastError := 'Antrieb Positionierung Modulo (FB1)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovMod1.Execute := FALSE;
+END_IF
+IF fbMovMod2.Execute AND NOT fbMovMod2.Busy THEN
+	IF fbMovMod2.Error THEN
+		nErrorId := fbMovMod2.ErrorID;
+		sLastError := 'Antrieb Positionierung Modulo (FB2)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovMod2.Execute := FALSE;
+END_IF
+
+// return if not in move rel
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_moveMod THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Positionierung Modulo';		
+IF NOT fbMovMod1.Busy THEN
+	fbMovMod1(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+ELSIF NOT fbMovMod2.Busy THEN
+	fbMovMod2(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+ELSE
+	nErrorId := 0;
+	sLastError := 'Fehler Antrieb Positionierung Modulo. Kein Baustein bereit.';
+	eState := E_ComponentState.eComponentState_error;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfMovRel" Id="{e0b5dca0-2ad0-42c6-9237-5681b6b1017d}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow move axis rel
+
+// call fb's cyclic
+fbMovRel1.Distance := stMovRelPrm.fDistance;
+fbMovRel1.Velocity := stMovRelPrm.fVelocity;
+fbMovRel1.Acceleration := stMovRelPrm.fAcceleration;
+fbMovRel1.Deceleration := stMovRelPrm.fDeceleration;
+fbMovRel1.Jerk := stMovRelPrm.fJerk;
+fbMovRel1.BufferMode := stMovRelPrm.eBufferMode;
+fbMovRel1.Options := stMovRelPrm.stOptions;
+fbMovRel1(Axis := fbAxisRef);
+
+fbMovRel2.Distance := stMovRelPrm.fDistance;
+fbMovRel2.Velocity := stMovRelPrm.fVelocity;
+fbMovRel2.Acceleration := stMovRelPrm.fAcceleration;
+fbMovRel2.Deceleration := stMovRelPrm.fDeceleration;
+fbMovRel2.Jerk := stMovRelPrm.fJerk;
+fbMovRel2.BufferMode := stMovRelPrm.eBufferMode;
+fbMovRel2.Options := stMovRelPrm.stOptions;
+fbMovRel2(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbMovRel1.Execute AND NOT fbMovRel1.Busy THEN
+	IF fbMovRel1.Error THEN
+		nErrorId := fbMovRel1.ErrorID;
+		sLastError := 'Antrieb Positionierung Relativ (FB1)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovRel1.Execute := FALSE;
+END_IF
+IF fbMovRel2.Execute AND NOT fbMovRel2.Busy THEN
+	IF fbMovRel2.Error THEN
+		nErrorId := fbMovRel2.ErrorID;
+		sLastError := 'Antrieb Positionierung Relativ (FB2)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovRel2.Execute := FALSE;
+END_IF
+
+// return if not in move rel
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_moveRel THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Positionierung Relativ';
+IF NOT fbMovRel1.Busy THEN
+	fbMovRel1(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;	
+ELSIF NOT fbMovRel2.Busy THEN
+	fbMovRel2(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;	
+ELSE
+	nErrorId := 0;
+	sLastError := 'Fehler Antrieb Positionierung Relativ. Kein Baustein bereit.';
+	eState := E_ComponentState.eComponentState_error;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfMovVel" Id="{fcec615e-9bca-4e7f-b130-b4f7172a95e4}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow move axis vel
+
+// call fb's cyclic
+fbMovVel1.Velocity := stMovVelPrm.fVelocity;
+fbMovVel1.Direction := stMovVelPrm.eDirection;
+fbMovVel1.Acceleration := stMovVelPrm.fAcceleration;
+fbMovVel1.Deceleration := stMovVelPrm.fDeceleration;
+fbMovVel1.Jerk := stMovVelPrm.fJerk;
+fbMovVel1.BufferMode := stMovVelPrm.eBufferMode;
+fbMovVel1.Options := stMovVelPrm.stOptions;
+fbMovVel1(Axis := fbAxisRef);
+
+fbMovVel2.Velocity := stMovVelPrm.fVelocity;
+fbMovVel2.Direction := stMovVelPrm.eDirection;
+fbMovVel2.Acceleration := stMovVelPrm.fAcceleration;
+fbMovVel2.Deceleration := stMovVelPrm.fDeceleration;
+fbMovVel2.Jerk := stMovVelPrm.fJerk;
+fbMovVel2.BufferMode := stMovVelPrm.eBufferMode;
+fbMovVel2.Options := stMovVelPrm.stOptions;
+fbMovVel2(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbMovVel1.Execute AND NOT fbMovVel1.Busy THEN
+	IF fbMovVel1.Error THEN
+		nErrorId := fbMovVel1.ErrorID;
+		sLastError := 'Antrieb Konstante Geschwindigkeit (FB1)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovVel1.Execute := FALSE;
+END_IF
+IF fbMovVel2.Execute AND NOT fbMovVel2.Busy THEN
+	IF fbMovVel2.Error THEN
+		nErrorId := fbMovVel2.ErrorID;
+		sLastError := 'Antrieb Konstante Geschwindigkeit (FB2)';
+		eState := E_ComponentState.eComponentState_error;
+	END_IF
+	fbMovVel2.Execute := FALSE;
+END_IF
+
+// return if other command active
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_moveVel THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Konstante Geschwindigkeit';		
+IF NOT fbMovVel1.Busy THEN
+	fbMovVel1(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+ELSIF NOT fbMovVel2.Busy THEN
+	fbMovVel2(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+ELSE
+	nErrorId := 0;
+	sLastError := 'Fehler Antrieb Konstante Geschwindigkeit. Kein Baustein bereit.';
+	eState := E_ComponentState.eComponentState_error;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfPower" Id="{47f3c756-b9cd-4e5d-9ad2-a858d9eaf04d}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow power axis
+
+tonAutoPowerOff(IN := bEnable AND stDefaultPrm.stGeneralPrm.bEnableAutoPowerOff AND fbAxisRef.Status.NotMoving AND NOT fbAxisRef.Status.Error AND 
+					  (eCommandRequest = eMotionCommand_none OR eCommandRequest = eMotionCommand_reset OR eCommandRequest = eMotionCommand_setPos) AND
+					  (eCommandExecute = eMotionCommand_none OR eCommandExecute = eMotionCommand_reset OR eCommandExecute = eMotionCommand_setPos),
+				PT := stDefaultPrm.stGeneralPrm.tAutoPowerOffDelay);
+
+fbPower.Enable := bEnable AND NOT tonAutoPowerOff.Q;
+fbPower(BufferMode := MC_Aborting, Axis := fbAxisRef);
+
+fbPower.Enable_Negative := bEnableNeg AND (NOT bEnableLimit OR stin.bLimitNeg);
+fbPower.Enable_Positive := bEnablePos AND (NOT bEnableLimit OR stin.bLimitPos);
+
+
+// ext. fan control
+IF stIn.iMotorTemperature >= stDefaultPrm.stGeneralPrm.iExtFanThreshold THEN
+	stOut.bExternalFan := TRUE;
+ELSIF stIn.iMotorTemperature < (stDefaultPrm.stGeneralPrm.iExtFanThreshold - 50) THEN // hysteresis 5°C
+	stOut.bExternalFan := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfReset" Id="{250cb9cc-ae2c-4400-b89a-64102bc315db}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow resetting
+
+// call FB cyclic
+fbReset(Axis:= fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbReset.Execute AND NOT fbReset.Busy THEN
+	IF fbReset.Error THEN			
+		nErrorId := fbReset.ErrorID;
+		sLastError := 'Fehler bei Antrieb Reset.';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbReset.Execute := FALSE;
+END_IF
+
+// return if other command active
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_reset THEN
+	RETURN;
+END_IF
+
+IF eAxisType = E_AxisType.AX5xxx THEN
+	// reset ax5000
+	sClearText := 'Start Antrieb Reset';
+	IF NOT fbAX5xxxDiag.Busy THEN
+		fbAX5xxxDiag.Reset := fbAxisRef.Status.Error OR fbAxisRef.Status.DriveDeviceError;
+		eCommandExecute := E_MotionCommand.eMotionCommand_none;
+		eState := E_ComponentState.eComponentState_ready;
+	END_IF	
+ELSE
+	// reset sequence of default axis types
+	sClearText := 'Start Antrieb Reset';
+	IF NOT fbReset.Busy THEN
+		fbReset(Axis := fbAxisRef, Execute := fbAxisRef.Status.Error);
+		eCommandExecute := E_MotionCommand.eMotionCommand_none;
+		eState := E_ComponentState.eComponentState_ready;
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfSetPos" Id="{4fe4669a-2fee-44e8-9a7e-f0b17c04227e}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow set position
+
+// call fb cyclic
+fbSetPos.Position := stSetPosPrm.fPosition;
+fbSetPos.Mode := stSetPosPrm.bMode;
+fbSetPos.Options := stSetPosPrm.stOptions;
+fbSetPos(Axis := fbAxisRef);
+
+// FB diagnostic and reset 
+IF fbSetPos.Execute AND NOT fbSetPos.Busy THEN
+	IF fbSetPos.Error THEN			
+		nErrorId := fbSetPos.ErrorID;
+		sLastError := 'Fehler Antrieb Position setzen.';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbSetPos.Execute := FALSE;
+END_IF
+
+// return if other command active	
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_setPos THEN
+	RETURN;
+END_IF
+
+sClearText := 'ntrieb Position setzen';		
+IF NOT fbSetPos.Busy THEN
+	fbSetPos(Axis := fbAxisRef, Execute := TRUE);
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="WfStop" Id="{39db5cda-253a-4ef4-a380-8ecdf64a5c8f}" FolderPath="Workflows\">
+      <Implementation>
+        <ST><![CDATA[
+/// Workflow stopping
+
+// call fb cyclic
+fbStop.Deceleration := stStopPrm.fDeceleration;
+fbStop.Jerk := stStopPrm.fJerk;
+fbStop.Options := stStopPrm.stOptions;
+fbStop(Axis := fbAxisRef);
+
+// FB diagnostic and reset
+IF fbStop.Execute THEN
+	IF fbStop.Error THEN			
+		nErrorId := fbStop.ErrorID;
+		sLastError := 'Fehler Antrieb Stoppen.';
+		eState := E_ComponentState.eComponentState_error;			
+	END_IF
+	fbStop.Execute := FALSE;
+END_IF
+
+// return if other command active
+IF eCommandExecute <> E_MotionCommand.eMotionCommand_stop THEN
+	RETURN;
+END_IF
+
+sClearText := 'Antrieb Stoppen';
+fbStop(Axis := fbAxisRef, Execute := TRUE);
+
+// stop command is not auto reset -> ext. reset needed!
+(*
+IF fbAxisRef.Status.StandStill THEN
+	eCommandExecute := E_MotionCommand.eMotionCommand_none;
+END_IF
+*)]]></ST>
+      </Implementation>
+    </Action>
+    <LineIds Name="FB_AxisDriver">
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.ActModuloPos.Get">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.ActPos.Get">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.ActPosEx.Get">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.AmplifierTemp.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Axis.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.AxisId.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.AxisId.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.AxisState.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.AxisType.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.AxisType.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.CheckLatchState">
+      <LineId Id="2" Count="0" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.DefaultParameter.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.DefaultParameter.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Enable.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Enable.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.EnableLimitSensor.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.EnableLimitSensor.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.EnableNeg.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.EnableNeg.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.EnablePos.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.EnablePos.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.GearIn">
+      <LineId Id="3" Count="17" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.GearInEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.GearOut">
+      <LineId Id="3" Count="13" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.GearOutEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.GearRatio.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.GearRatio.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Halt">
+      <LineId Id="3" Count="12" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.HaltEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Home">
+      <LineId Id="3" Count="12" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Homed.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.HomeEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Homing.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.IsSafetyCardActive.Get">
+      <LineId Id="3" Count="7" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Jog">
+      <LineId Id="3" Count="17" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.JogAcc">
+      <LineId Id="3" Count="17" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.JogAccEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.JogAccExVel">
+      <LineId Id="3" Count="20" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.JogEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.JogExVel">
+      <LineId Id="3" Count="11" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.LastMcErrorId.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.LatchObjState">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.LimitNeg.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.LimitNeg.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.LimitPos.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.LimitPos.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MasterAxisId.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MotionState.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MotorTemp.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveAbs">
+      <LineId Id="3" Count="14" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveAbsEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveAbsExVel">
+      <LineId Id="3" Count="16" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveAdd">
+      <LineId Id="3" Count="15" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveAddEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveMod">
+      <LineId Id="3" Count="16" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveModEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveRel">
+      <LineId Id="3" Count="15" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveRelEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveRelExVel">
+      <LineId Id="3" Count="16" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveVel">
+      <LineId Id="3" Count="14" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.MoveVelEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Moving.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.negTorqueLimit.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.negTorqueLimit.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.NotMoving.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Override.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Override.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.posTorqueLimit.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.posTorqueLimit.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Reset">
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Run">
+      <LineId Id="3" Count="94" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.SetAxisReference">
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.SetPos">
+      <LineId Id="3" Count="13" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.SetPosEx">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.SetSecondPosFeedback">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Stop">
+      <LineId Id="3" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.StopEx">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.TargetReached">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.TargetReachedMod">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Torque.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.TorqueLimit.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.TorqueLimit.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.Velocity.Get">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfDiagnostic">
+      <LineId Id="2" Count="25" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfErrorHandling">
+      <LineId Id="2" Count="38" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfGearIn">
+      <LineId Id="2" Count="37" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfGearOut">
+      <LineId Id="2" Count="31" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfHalt">
+      <LineId Id="2" Count="29" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfHome">
+      <LineId Id="2" Count="30" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfJog">
+      <LineId Id="2" Count="30" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfJogAcc">
+      <LineId Id="2" Count="54" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfMovAbs">
+      <LineId Id="2" Count="55" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfMovAdd">
+      <LineId Id="2" Count="55" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfMovMod">
+      <LineId Id="2" Count="57" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfMovRel">
+      <LineId Id="2" Count="55" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfMovVel">
+      <LineId Id="2" Count="55" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfPower">
+      <LineId Id="2" Count="19" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfReset">
+      <LineId Id="2" Count="36" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfSetPos">
+      <LineId Id="2" Count="29" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AxisDriver.WfStop">
+      <LineId Id="2" Count="31" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

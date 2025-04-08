@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="FB_LimitSwitchRefSim" Id="{48eb2f9c-6246-4468-a584-ccfc532dff24}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Axis driver limit switch
+FUNCTION_BLOCK FB_LimitSwitchRefSim
+VAR_INPUT
+	/// Aktiviert die Logik
+	bEnable					:BOOL;
+	/// Position der Achse
+	fPosition				:REAL;
+	
+	/// Endschalter (Oeffner)
+	bLimitSwitch			:BOOL;
+	/// Distanz Simuliertem Ref-Schalter zu Endschalter
+	fRefLimitDistance		:REAL := 1;
+	
+	/// Referenzposition
+	fRefPosition			:REAL;
+	/// Pruefen des Positionsbereichs der Referenzposition
+	fRefPosCheckArea		:REAL := 0.2;
+END_VAR
+VAR_OUTPUT
+	/// Endschalter (Verzeogert)
+	bLimitSwitchSim			:BOOL;
+	/// Simulierter Ref Schalter
+	bRefSwitchSim			:BOOL;
+	
+	/// Pruefung der Refpos OK
+	bRefCheckOk				:BOOL;
+END_VAR
+VAR
+	
+END_VAR
+VAR PERSISTENT
+	fPosLatched			:REAL;
+	bPosLatched			:BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+	Baustein um einen Ref-Schalter und Limitswitch mit 1 Eingang zu realisieren
+	RE / 2015 / www.rmth.at
+*)
+
+IF NOT bEnable THEN
+	bLimitSwitchSim := bLimitSwitch;
+	bRefSwitchSim := bLimitSwitchSim;
+	bRefCheckOk := FALSE;
+	RETURN;
+END_IF
+
+// logik
+IF bLimitSwitch THEN // (Oeffner)
+	fPosLatched := 0;
+	bPosLatched := FALSE;	
+	bLimitSwitchSim := TRUE; // limit ok
+	bRefSwitchSim := FALSE; // kein referenz
+
+ELSE
+	// Position merken
+	IF NOT bPosLatched THEN
+		bPosLatched := TRUE;
+		fPosLatched := fPosition;
+	END_IF
+
+	bRefSwitchSim := TRUE;
+	bLimitSwitchSim := (ABS(fPosition - fPosLatched) >= fRefLimitDistance);
+END_IF
+
+// Referenzpunkt pruefen
+bRefCheckOk := ABS(fRefPosition - fPosLatched) <= fRefPosCheckArea;
+]]></ST>
+    </Implementation>
+    <Method Name="Reset" Id="{b2907d14-785f-42e7-948f-44ba3218f996}">
+      <Declaration><![CDATA[METHOD Reset : bool
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fPosLatched := 0;
+bPosLatched := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_LimitSwitchRefSim">
+      <LineId Id="3" Count="31" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_LimitSwitchRefSim.Reset">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

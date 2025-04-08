@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisHomingParameter" Id="{48861158-5d5c-4746-b931-bc857fb2e41a}">
+    <Declaration><![CDATA[TYPE ST_AxisHomingParameter :
+STRUCT
+	bCalibrationCam: REFERENCE TO BOOL;
+	fPosition: LREAL := DEFAULT_HOME_POSITION;
+	eHomingMode: MC_HomingMode := MC_DefaultHoming;
+	eBufferMode: MC_BufferMode := MC_Aborting;
+	stOptions: ST_HomingOptions;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

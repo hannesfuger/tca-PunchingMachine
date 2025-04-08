@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_SafetyLockOut" Id="{22bcb408-dd6f-4467-a7d4-55f771a34db8}">
+    <Declaration><![CDATA[{attribute 'pack_mode' := '0'}
+TYPE ST_SafetyLockOut :
+STRUCT
+	bSaftyOk		: BOOL;
+	bLock			: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

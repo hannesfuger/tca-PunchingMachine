@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_AxisIn" Id="{b683817d-f795-4a28-a248-413a8ff06192}">
+    <Declaration><![CDATA[TYPE ST_AxisIn :
+STRUCT
+	/// Torque from drive [1/10 Nm]
+	iTorqueFeedbackValue	: INT;
+	/// Motortemp: [1/10 °C]
+	iMotorTemperature		: INT;
+	/// Amplifiertemp: [1/10 °C]
+	iAmplifierTemperature	: INT;
+	/// calibration Sensor
+	bCalibrationCam			: BOOL;
+	/// Limit Sensor Pos
+	bLimitPos				: BOOL;
+	/// Limit Sensor Neg
+	bLimitNeg				: BOOL;
+	/// Limit Sensor Neg
+	nPositionFeedbackValue	: DINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

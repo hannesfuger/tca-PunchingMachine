@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_BoolFilter" Id="{78271124-97da-44f6-9061-47c397997373}">
+    <Declaration><![CDATA[/// Listing of possible filter to a boolean variable
+TYPE E_BoolFilter :
+(
+	eBoolFilter_none := 0,
+	eBoolFilter_true,
+	eBoolFilter_false
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

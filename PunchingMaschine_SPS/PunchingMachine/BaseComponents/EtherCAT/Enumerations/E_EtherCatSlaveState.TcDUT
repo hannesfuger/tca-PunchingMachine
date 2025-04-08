@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_EtherCatSlaveState" Id="{cc12d080-0e41-494d-b96d-e8b9ce6b0d9d}">
+    <Declaration><![CDATA[/// Listing of possible ethercat slave states
+TYPE E_EtherCatSlaveState :
+(
+	// 0x___1 = Slave in 'INIT' state
+	eEtherCatSlaveState_INIT := 0,
+	// 0x___2 = Slave in 'PREOP' state
+	eEtherCatSlaveState_PREOP,
+	// 0x___3 = Slave in 'BOOT' state
+	eEtherCatSlaveState_BOOT,
+	// 0x___4 = Slave in 'SAFEOP' state
+	eEtherCatSlaveState_SAFEOP,
+	// 0x___8 = Slave in 'OP' state
+	eEtherCatSlaveState_OP,
+	// 0x001_ = Slave signals error
+	eEtherCatSlaveState_SignalsError,
+	// 0x002_ = Invalid vendorId, productCode... read
+	eEtherCatSlaveState_Invalid,
+	// 0x004_ = Initialization error occurred
+	eEtherCatSlaveState_InitErr,
+	// 0x008_ = Slave disabled
+	eEtherCatSlaveState_Disabled,
+	// 0x010_ = Slave not present
+	eEtherCatSlaveState_NotPresent,
+	// 0x020_ = Slave signals link error
+	eEtherCatSlaveState_LinkErr,
+	// 0x040_ = Slave signals missing link
+	eEtherCatSlaveState_MissingLink,
+	// 0x080_ = Slave signals unexpected link
+	eEtherCatSlaveState_UnexpectedLink,
+	// 0x100_ = Communication port A
+	eEtherCatSlaveState_ComPortA,
+	// 0x200_ = Communication port B
+	eEtherCatSlaveState_ComPortB,
+	// 0x400_ = Communication port C
+	eEtherCatSlaveState_ComPortC,
+	// 0x800_ = Communication port D
+	eEtherCatSlaveState_ComPortD	
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

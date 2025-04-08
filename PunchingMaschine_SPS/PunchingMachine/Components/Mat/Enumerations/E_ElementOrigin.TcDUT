@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="E_ElementOrigin" Id="{efd1ffd5-1139-4541-9847-ea04f2e0f2ac}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE E_ElementOrigin :
+(
+	eElementOrigin_ButtomRight := 0,
+	eElementOrigin_ButtomLeft := 1,
+	eElementOrigin_TopRight := 2,
+	eElementOrigin_TopLeft:= 3
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_MotionCommand" Id="{c5e6849d-e79d-453a-bf5e-026c729be17d}">
+    <Declaration><![CDATA[/// Enumeration of possible axis motion commands.
+TYPE E_MotionCommand :
+(
+	/// No command
+	eMotionCommand_none := 0,
+	/// Reset axis
+	eMotionCommand_reset := 1,
+	/// Axis halt (default stopping method)
+	eMotionCommand_halt := 2,
+	/// Axis stop (needs reset before next motion command)
+	eMotionCommand_stop := 3,
+	/// Axis homing
+	eMotionCommand_home := 4,
+	/// Set axis position
+	eMotionCommand_setPos := 5,
+	/// Jog axis
+	eMotionCommand_jog := 6,
+	/// Jog axis accelerating
+	eMotionCommand_jogAcc := 7,
+	/// Move axis to point
+	eMotionCommand_moveAbs := 8,
+	/// Move axis additive
+	eMotionCommand_moveAdd := 9,
+	/// Move axis relative
+	eMotionCommand_moveRel := 10,
+	/// Move axis modulo
+	eMotionCommand_moveMod := 11,
+	/// Move axis velocity (endles)
+	eMotionCommand_moveVel := 12,
+	/// Apply axis torque
+	eMotionCommand_torque := 13,
+	/// Gear axis in (electronic) or change gear ratio
+	eMotionCommand_gearIn := 14,
+	/// Gear axis out (electronic), default behavior: halt axis after gear out
+	eMotionCommand_gearOut := 15,
+	/// Axis start/stop touch probe
+	eMotionCommand_touchProbe := 16,
+	/// Set override in maintenance mode
+	eMotionCommand_setOverride := 17
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Crc="463901219" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{70ba3c72-37f5-4253-b5f4-afdaea4dcc53}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TwinCAT3SafePlcProject</RootNamespace>
+    <AssemblyName>TwinCAT3SafePlcProject</AssemblyName>
+    <FileUpgradeFlags />
+    <UpgradeBackupLocation />
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetSystem>EL6900</TargetSystem>
+    <ProgrammingLanguage>Graphical Editor</ProgrammingLanguage>
+    <Worker>hannes.fuger</Worker>
+    <IntProjName>PunchingMachineSafety</IntProjName>
+    <IsNewCreated>false</IsNewCreated>
+    <SPlcProjVersion>1.7.0.0</SPlcProjVersion>
+    <NextSdsId>19</NextSdsId>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>false</DebugSymbols>
+    <OutputPath>bin\Release\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="TwinSafeGroup1\Alias Devices\Door_SAFE.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\FunctionblockError.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\CommunicationError.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\ErrorAcknowledgement_Drives.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Emergency_SAFE.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Run_Stop.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Term 10 %28AX5805%29 - Module 1 %28Safety Process Data, 2 axis%29.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Term 12 %28AX5805%29 - Module 1 %28Safety Process Data, 1 axis%29.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Term 3 %28EL2904%29 - Module 1 %28FSOES%29.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Term 4 %28EL1904%29 - Module 1 %28FSOES%29.sds" />
+    <None Include="TwinSafeGroup1\Alias Devices\Term 5 %28EL1904%29 - Module 1 %28FSOES%29.sds" />
+    <None Include="TwinSafeGroup1\TwinSafeGroup1.sal" />
+    <None Include="TwinSafeGroup1\TwinSafeGroup1.sal.diagram">
+      <DependentUpon>TwinSafeGroup1\TwinSafeGroup1.sal</DependentUpon>
+      <Visible>false</Visible>
+    </None>
+    <None Include="TargetSystemConfig.xml">
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TwinSafeGroup1" />
+    <Folder Include="TwinSafeGroup1\Alias Devices" />
+    <None Include="TwinSafeGroup1\Alias Devices\ErrorAcknowledgement.sds" />
+  </ItemGroup>
+</Project>

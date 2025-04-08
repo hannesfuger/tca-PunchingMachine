@@ -1,0 +1,386 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="P_Visu" Id="{fb0c63ef-be68-4ef0-98bb-ce4e496ecbe5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Visu
+VAR
+	bFirstRun					: BOOL := TRUE;	
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bFirstRun THEN
+	bFirstRun := FALSE;
+	FirstRun();
+END_IF
+
+JogButton();
+SwitchButton();
+SyncVariable();]]></ST>
+    </Implementation>
+    <Method Name="FirstRun" Id="{97d5756f-7d6c-467d-b24f-dc88368db921}">
+      <Declaration><![CDATA[METHOD FirstRun : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GVL_VISU.stMachineConfig := P_Machine.MachineConfig;	
+GVL_VISU.stCurMat := fbmat.Mat;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="JogButton" Id="{4cba26b3-b30f-41c0-82fe-d8bffd0df9f6}">
+      <Declaration><![CDATA[METHOD JogButton : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// JOG X
+IF GVL_VISU.stMaintCmds.bJogXBw THEN
+	GVL.fbMatAndToolHandling.JogX(TRUE);
+ELSIF GVL_VISU.stMaintCmds.bJogXFw THEN
+	GVL.fbMatAndToolHandling.JogX(FALSE);
+ELSE
+	GVL.fbMatAndToolHandling.JogXStop();
+END_IF
+
+// JOG Y
+IF GVL_VISU.stMaintCmds.bJogYBw THEN
+	GVL.fbMatAndToolHandling.JogY(TRUE);
+ELSIF GVL_VISU.stMaintCmds.bJogYFw THEN
+	GVL.fbMatAndToolHandling.JogY(FALSE);
+ELSE
+	GVL.fbMatAndToolHandling.JogYStop();
+END_IF
+
+// JOG Punch
+IF GVL_VISU.stMaintCmds.bJogPunchBw THEN
+	GVL.fbPunchEngine.Jog(FALSE, TRUE);
+ELSIF GVL_VISU.stMaintCmds.bJogPunchFw THEN
+	GVL.fbPunchEngine.Jog(TRUE, FALSE);
+ELSE
+	GVL.fbPunchEngine.JogStop();
+END_IF
+
+// JOG BELT
+IF GVL_VISU.stMaintCmds.bJogOutletBelt THEN
+	GVL.fbPunchEngine.OutletBeltJog(TRUE);
+ELSE
+	GVL.fbPunchEngine.OutletBeltJog(FALSE);
+END_IF	
+	
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SwitchButton" Id="{79e15511-0af6-49f6-a7f8-55ac30540241}">
+      <Declaration><![CDATA[METHOD SwitchButton : BOOL
+VAR_STAT
+	stNullPunchCmds				: ST_PunchCmds;
+	stNullMaintCmds				: ST_MaintCmds;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// PUNCH COMMANDS
+IF MEMCMP(ADR(GVL_VISU.stPunchCmds), ADR(stNullPunchCmds), SIZEOF(ST_PunchCmds)) <> 0 THEN
+	IF GVL_VISU.stPunchCmds.bLoad THEN
+		P_Machine.LoadMat(GVL_VISU.stCurMat);		
+		P_Machine.LoadJob(GVL_VISU.stPunchJob);	
+	END_IF
+	
+	IF GVL_VISU.stPunchCmds.bStart THEN	
+		P_Machine.LoadMat(GVL_VISU.stCurMat);	
+		P_Machine.Start(GVL_VISU.stPunchJob);	
+	END_IF
+	
+	IF GVL_VISU.stPunchCmds.bStop THEN
+		P_Machine.Stop();	
+	END_IF
+	
+	IF GVL_VISU.stPunchCmds.bResume THEN
+		P_Machine.Resume();	
+	END_IF
+	
+	IF GVL_VISU.stPunchCmds.bHalt THEN
+		P_Machine.ClearJob();
+		P_Machine.Halt();	
+	END_IF	
+		
+	IF GVL_VISU.stPunchCmds.bLoadLeft THEN
+		P_Machine.Maint(TRUE, TRUE, FALSE);	
+	END_IF	
+	
+	IF GVL_VISU.stPunchCmds.bLoadRight THEN
+		P_Machine.Maint(TRUE, TRUE, TRUE);	
+	END_IF	
+	
+	IF GVL_VISU.stPunchCmds.bLoadStop THEN
+		P_Machine.Halt();	
+	END_IF	
+	
+	IF GVL_VISU.stPunchCmds.bUnlock THEN
+		IF fbSafetyLock.Locked THEN
+			GVL.fbSafetyLock.Unlock();
+		ELSE
+			GVL.fbSafetyLock.Lock();
+		END_IF
+	END_IF		
+	
+	IF GVL_VISU.stPunchCmds.bMoveTDC THEN
+		GVL.fbPunchEngine.MoveTDC();	
+	END_IF	
+	
+	IF GVL_VISU.stPunchCmds.bOutletBelt THEN
+		GVL.fbPunchEngine.OutletBeltOnce();	
+	END_IF	
+		
+	IF GVL_VISU.stPunchCmds.bOverride THEN
+		P_Machine.Override := GVL_VISU.stPunchParam.fOverride;
+	END_IF	
+END_IF
+
+// RESET PUNCH COMMANDS
+GVL_VISU.stPunchCmds.bLoad := FALSE;
+GVL_VISU.stPunchCmds.bStart := FALSE;
+GVL_VISU.stPunchCmds.bStop := FALSE;
+GVL_VISU.stPunchCmds.bResume := FALSE;
+GVL_VISU.stPunchCmds.bHalt := FALSE;
+GVL_VISU.stPunchCmds.bLoadLeft := FALSE;
+GVL_VISU.stPunchCmds.bLoadRight := FALSE;
+GVL_VISU.stPunchCmds.bMoveTDC := FALSE;
+GVL_VISU.stPunchCmds.bOutletBelt := FALSE;
+GVL_VISU.stPunchCmds.bOverride := FALSE;
+GVL_VISU.stPunchCmds.bUnlock := FALSE;
+GVL_VISU.stPunchCmds.bLoadStop := FALSE;
+
+// MAINT COMMANDS
+IF MEMCMP(ADR(GVL_VISU.stMaintCmds), ADR(stNullMaintCmds), SIZEOF(ST_MaintCmds)) <> 0 THEN	
+	IF GVL_VISU.stMaintCmds.bLoadConfig THEN
+		P_Machine.LoadConfig(GVL_VISU.stMachineConfig);
+	END_IF
+	
+	IF GVL_VISU.stMaintCmds.bChangeTool THEN
+		GVL.fbMatAndToolHandling.ChangeTool(GVL_VISU.stMaintParam.nChangeTool);
+	END_IF
+	
+	IF GVL_VISU.stMaintCmds.bMoveXYMaint THEN
+		P_Machine.Maint(TRUE, TRUE, FALSE);	
+	END_IF
+	
+	IF GVL_VISU.stMaintCmds.bMoveXYMaintAlt THEN
+		P_Machine.Maint(TRUE, TRUE, TRUE);	
+	END_IF
+	
+	IF GVL_VISU.stMaintCmds.bReset THEN
+		P_Machine.Reset();	
+	END_IF	
+	
+	IF GVL_VISU.stMaintCmds.bMovePunchTDC THEN
+		GVL.fbPunchEngine.MoveTDC();	
+	END_IF	
+	
+	IF GVL_VISU.stMaintCmds.bSetZero THEN
+		GVL.fbPunchEngine.SetZeroOffset();	
+	END_IF	
+	
+END_IF
+
+// RESET MAINT COMMANDS
+GVL_VISU.stMaintCmds.bLoadConfig := FALSE;
+GVL_VISU.stMaintCmds.bChangeTool := FALSE;
+GVL_VISU.stMaintCmds.bMoveXYMaint := FALSE;
+GVL_VISU.stMaintCmds.bMoveXYMaintAlt := FALSE;
+GVL_VISU.stMaintCmds.bReset := FALSE;
+GVL_VISU.stMaintCmds.bMovePunchTDC := FALSE; 
+GVL_VISU.stMaintCmds.bSetZero := FALSE; ]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SyncVariable" Id="{9e9d4bdf-b355-4f61-a9f5-0348c65df512}">
+      <Declaration><![CDATA[METHOD SyncVariable : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// VISU TO PLC
+stPunchInfo.sCleartext 				:= P_Machine.seqOpMode.ClearText;
+stPunchInfo.nCurMat 				:= P_Machine.CurMat + 1;
+stPunchInfo.nCurPunch 				:= P_Machine.CurPunch + 1;
+stPunchInfo.nCurRun 				:= P_Machine.CurRun + 1;
+stPunchInfo.nMaxPunches 			:= P_Machine.MaxPunch + 1;
+stPunchInfo.nCountRemainHolesOfJob 	:= P_Machine.CountRemainHolesOfJob + 1;
+stPunchInfo.nCountAllHolesOfJob 	:= P_Machine.CountAllHolesOfJob + 1;
+stPunchInfo.nRemainTimeOfJob 		:= P_Machine.RemainTimeOfJob;
+stPunchInfo.stCoordinate 			:= P_Machine.stCoordinate;
+stPunchInfo.bPunching 				:= P_Machine.Punching;
+stPunchInfo.bResumeAllowed 			:= P_Machine.ResumeAllowed;
+stPunchInfo.eJobState 				:= P_Machine.JobState;
+stPunchInfo.fOverride 				:= P_Machine.Override;
+stPunchInfo.fPunchspeed				:= fbPunchEngine.fbPunchAxis.Velocity;
+stPunchInfo.bLocked					:= fbSafetyLock.Locked;
+
+// X - Axis
+stMaintInfo.bXHomed					:= fbMatAndToolHandling.fbAxisX.Homed;
+stMaintInfo.bXError					:= fbMatAndToolHandling.fbAxisX.Error;
+stMaintInfo.bXMoving				:= fbMatAndToolHandling.fbAxisX.Moving;
+stMaintInfo.fXPosition				:= fbMatAndToolHandling.fbAxisX.ActPos;
+stMaintInfo.fXTemp					:= fbMatAndToolHandling.fbAxisX.AmplifierTemp;
+stMaintInfo.fXMotorTemp				:= fbMatAndToolHandling.fbAxisX.MotorTemp;
+                            		   
+// Y - Axis                 		   
+stMaintInfo.bYHomed					:= fbMatAndToolHandling.fbAxisY.Homed;        
+stMaintInfo.bYError					:= fbMatAndToolHandling.fbAxisY.Error;        
+stMaintInfo.bYMoving				:= fbMatAndToolHandling.fbAxisY.Moving;       
+stMaintInfo.fYPosition				:= fbMatAndToolHandling.fbAxisY.ActPos;       
+stMaintInfo.fYTemp					:= fbMatAndToolHandling.fbAxisY.AmplifierTemp;
+stMaintInfo.fYMotorTemp				:= fbMatAndToolHandling.fbAxisY.MotorTemp;    
+                            		   
+// Punch - Axis             		   
+stMaintInfo.bPunchHomed				:= fbPunchEngine.fbPunchAxis.Homed;        
+stMaintInfo.bPunchError				:= fbPunchEngine.fbPunchAxis.Error;        
+stMaintInfo.bPunchMoving			:= fbPunchEngine.fbPunchAxis.Moving;       
+stMaintInfo.fPunchPosition			:= fbPunchEngine.fbPunchAxis.ActModuloPos;       
+stMaintInfo.fPunchTemp				:= fbPunchEngine.fbPunchAxis.AmplifierTemp;
+stMaintInfo.fPunchMotorTemp			:= fbPunchEngine.fbPunchAxis.MotorTemp;   
+ 
+// ToolChanger              		   
+stMaintInfo.bToolError				:= fbMatAndToolHandling.fbToolSelector.State = E_ComponentState.eComponentState_error;
+stMaintInfo.bToolChanged			:= fbMatAndToolHandling.ToolChanged;
+stMaintInfo.nToolSelect				:= fbMatAndToolHandling.CurTool;
+                            		   
+// Machine                  		   
+stMaintInfo.bSequenceError			:= P_Machine.seqOpMode.State = E_SequenceState.eSequenceState_error;
+stMaintInfo.bSafetyOk				:= fbSafety.SafetyOk;
+stMaintInfo.bEmergency				:= NOT fbSafety.bNotHaltOk;
+stMaintInfo.nPunchCount				:= fbPunchEngine.PunchCount;                         		  
+stMaintInfo.nStep					:= P_Machine.seqOpMode.Step;
+stMaintInfo.nSequence				:= P_Machine.seqOpMode.SequenceId;
+//stMaintInfo.bSafetyDoor				:= ;
+
+// PLC TO VISU
+P_Machine.CheckPosBeforeRun 		:= GVL_VISU.stPunchParam.bCheckPosBeforeRun;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="P_Visu">
+      <LineId Id="206" Count="0" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="208" Count="1" />
+      <LineId Id="230" Count="3" />
+    </LineIds>
+    <LineIds Name="P_Visu.FirstRun">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="P_Visu.JogButton">
+      <LineId Id="51" Count="7" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="60" Count="22" />
+      <LineId Id="48" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="P_Visu.SwitchButton">
+      <LineId Id="122" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="8" Count="3" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="13" Count="11" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="151" Count="1" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="155" Count="1" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="202" Count="1" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="114" Count="4" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="180" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="181" Count="1" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="239" Count="1" />
+      <LineId Id="106" Count="1" />
+      <LineId Id="35" Count="7" />
+      <LineId Id="165" Count="1" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="192" Count="1" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="217" Count="1" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="102" Count="3" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="219" Count="0" />
+    </LineIds>
+    <LineIds Name="P_Visu.SyncVariable">
+      <LineId Id="38" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="5" Count="2" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="42" Count="1" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="51" Count="7" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="60" Count="6" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="68" Count="6" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="77" Count="3" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="97" Count="1" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="83" Count="1" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

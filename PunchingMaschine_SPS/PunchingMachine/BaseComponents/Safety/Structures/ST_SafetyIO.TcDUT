@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="ST_SafetyIO" Id="{61c9475c-5723-4fbd-9b3a-b6aec8b7b0ac}">
+    <Declaration><![CDATA[/// Safety IO's for PLC <-> TwinSAFE communication.
+TYPE ST_SafetyIO :
+STRUCT
+	/// From TwinSAFE to PLC structure.
+	stIn 					: ST_SafetyIn;
+	
+	/// To TwinSAFE from PLC structure.
+	stOut 		AT %Q*		: ST_SafetyOut;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

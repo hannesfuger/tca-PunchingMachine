@@ -1,0 +1,61 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-stelement",
+      "displayName": "stElement",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_Element",
+      "category": "",
+      "description": "",
+      "defaultValue": {
+        "bActive": null,
+        "bCentering": null,
+        "bMirroring": null,
+        "eOrigin": null,
+        "fDistanceX": null,
+        "fDistanceY": null,
+        "fX_Pos": null,
+        "fY_Pos": null,
+        "nCountX": null,
+        "nCountY": null
+      },
+      "defaultValueInternal": {
+        "bActive": null,
+        "bCentering": null,
+        "bMirroring": null,
+        "eOrigin": null,
+        "fDistanceX": null,
+        "fDistanceY": null,
+        "fX_Pos": null,
+        "fY_Pos": null,
+        "nCountX": null,
+        "nCountY": null
+      },
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stElement",
+      "propertySetterName": "setStElement",
+      "propertyGetterName": "getStElement"
+    },
+    {
+      "name": "data-tchmi-onvaluechanged",
+      "displayName": "onValueChanged",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "defaultValue": false,
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "onValueChanged",
+      "propertySetterName": "setOnValueChanged",
+      "propertyGetterName": "getOnValueChanged"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

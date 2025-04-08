@@ -1,0 +1,38 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-stmatrun",
+      "displayName": "stMatRun",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_MatRun",
+      "category": "",
+      "description": "",
+      "defaultValue": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stMatRun",
+      "propertySetterName": "setStMatRun",
+      "propertyGetterName": "getStMatRun"
+    },
+    {
+      "name": "data-tchmi-onvaluechanged",
+      "displayName": "onValueChanged",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "defaultValue": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "onValueChanged",
+      "propertySetterName": "setOnValueChanged",
+      "propertyGetterName": "getOnValueChanged"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

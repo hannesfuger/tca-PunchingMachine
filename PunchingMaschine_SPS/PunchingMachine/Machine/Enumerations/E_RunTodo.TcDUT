@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_RunTodo" Id="{471bdc89-53f4-4f75-82b3-61ce3cbb4fc3}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_RunTodo :
+(
+	Punch_no	 := 0,
+	Punch_Tool_1 := 1,
+	Punch_Tool_2 := 2
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

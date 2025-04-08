@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_MachineArea" Id="{1f82b0ad-04aa-4e81-b0b2-7db4e8b046a0}">
+    <Declaration><![CDATA[/// Enumeration of all possible component types
+TYPE E_MachineArea :
+(
+	/// Common machine part
+	eMachineArea_none := 0,
+	eMachineArea_common,
+
+	eMachineArea_max
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

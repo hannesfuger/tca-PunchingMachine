@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_DigitalOutputIO" Id="{41c5da23-75ec-4487-b224-83440910fe5a}">
+    <Declaration><![CDATA[TYPE ST_DigitalOutputIO :
+STRUCT
+	stOut 	AT%Q* : ST_DigitalOutputOut;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

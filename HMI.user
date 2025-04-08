@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TcHmiEditor_SplitAreaStates>{
+  "EditorSettings": [
+    {
+      "Path": "Controls\\Ribbon\\Ribbon_RunSetting.usercontrol",
+      "DesignAreaSplitSize": "Full",
+      "CodeAreaSplitSize": "Minimized",
+      "Orientation": "Horizontal",
+      "DesignAreaPosition": "Left",
+      "CodeAreaPosition": "Right",
+      "SplitPercentage": 0.5
+    },
+    {
+      "Path": "Main.view",
+      "DesignAreaSplitSize": "Full",
+      "CodeAreaSplitSize": "Minimized",
+      "Orientation": "Horizontal",
+      "DesignAreaPosition": "Left",
+      "CodeAreaPosition": "Right",
+      "SplitPercentage": 0.5
+    }
+  ]
+}</TcHmiEditor_SplitAreaStates>
+    <TcHmiEditor_SelectBindingWindowDimension>470;271;958;672</TcHmiEditor_SelectBindingWindowDimension>
+    <RecentColors>[
+  {
+    "counter": 5,
+    "color": "#FFF1F1F1"
+  },
+  {
+    "counter": 2,
+    "color": "#00000000"
+  },
+  {
+    "counter": 1,
+    "color": "#FFD2D2D2"
+  },
+  {
+    "counter": 1,
+    "color": "#FFADADAD"
+  },
+  {
+    "counter": 1,
+    "color": "#FF21262A"
+  },
+  {
+    "counter": 1,
+    "color": "#FFC6C6C6"
+  },
+  {
+    "counter": 1,
+    "color": "#FF9E9E9E"
+  },
+  {
+    "counter": 1,
+    "color": "#FFFFFFFF"
+  },
+  {
+    "counter": 0,
+    "color": "#FF000000"
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  },
+  {
+    "counter": 0,
+    "color": ""
+  }
+]</RecentColors>
+  </PropertyGroup>
+</Project>

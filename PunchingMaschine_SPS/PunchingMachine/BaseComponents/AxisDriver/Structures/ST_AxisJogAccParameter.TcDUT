@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisJogAccParameter" Id="{68ae94f2-0e22-4111-8e53-6815dee3d178}">
+    <Declaration><![CDATA[/// Accelerating jog parameter strucure
+TYPE ST_AxisJogAccParameter EXTENDS ST_AxisMoveParameter :
+STRUCT
+	/// Jog axis backward
+	bJogBackwards: BOOL;
+	/// Jog axis forward
+	bJogForward: BOOL;
+	/// Slow (starting) speed
+	fSlowSpeed: LREAL;
+	/// Fast end-speed
+	fFastSpeed: LREAL;
+	/// Time for ramp from slow to fast speed 
+	tAccTime: TIME;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

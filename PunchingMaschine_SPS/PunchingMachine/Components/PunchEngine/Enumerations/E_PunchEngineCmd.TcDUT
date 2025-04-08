@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_PunchEngineCmd" Id="{172fb101-335f-4123-a1d2-53e5e33d5b88}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_PunchEngineCmd :
+(
+	cmdNone 	:= 0,
+	cmdMove 	:= 1,
+	cmdHalt 	:= 2,
+	cmdPunch    := 3,
+	cmdHome     := 4,
+	cmdJog		:= 5
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

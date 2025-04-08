@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_CylinderDriverOut" Id="{1bf051e3-b791-414a-8a23-f851ca3fd51a}">
+    <Declaration><![CDATA[TYPE ST_CylinderDriverOut :
+STRUCT
+	bValveCylinderHp	: BOOL;
+	bValveCylinderWp	: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="F_SpeedReached" Id="{035b721f-ac11-496f-8595-94758d1450d5}" SpecialFunc="None">
+    <Declaration><![CDATA[/// determines whether the actual speed (ABS value) is within the target-speed window
+FUNCTION F_SpeedReached : BOOL
+VAR_INPUT
+	/// actual speed
+	fActualSpeed: LREAL;
+	/// target speed
+	fTargetSpeed: LREAL;
+	/// Override for axis and spindle
+	fOverride: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_SpeedReached := F_SpeedWindowReached(fToleranceFactor:=0, fActualSpeed:=fActualSpeed, fTargetSpeed:=fTargetSpeed, fOverride:=fOverride);]]></ST>
+    </Implementation>
+    <LineIds Name="F_SpeedReached">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

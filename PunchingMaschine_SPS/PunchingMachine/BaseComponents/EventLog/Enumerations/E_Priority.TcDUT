@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_Priority" Id="{d87000b8-ce05-4d44-bf53-f177ca41ad18}">
+    <Declaration><![CDATA[/// enumeration of all possible priority
+TYPE E_Priority :
+(
+	/// no priority
+	ePriority_none := 0,
+	/// info priority
+	ePriority_info := 1,
+	/// warn priority
+	ePriority_warning := 2,
+	/// error priority -> Zyklusstop
+	ePriority_fault := 3,
+	/// error priority with fast stop -> Stopp im aktuellen Schritt 
+	ePriority_faultFastStop := 4,
+	/// error priority with emergency stop -> Sofortstop aller Objekte
+	ePriority_faultEmergency := 5
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="ST_SafetyIn" Id="{e60c8b51-5d6d-46b9-bf4d-8b42a1a660d3}">
+    <Declaration><![CDATA[/// Sicherheitssignale
+TYPE ST_SafetyIn :
+STRUCT
+	/// Not-Halt Status von Safety
+	bSAFE_NotHalt_Ok						AT %I*: BOOL;
+	bSAFE_CommErr							AT %I*: BOOL;
+	bSAFE_FbErr								AT %I*: BOOL;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

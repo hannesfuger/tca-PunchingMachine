@@ -1,0 +1,51 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-strun",
+      "displayName": "stRun",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_MatRun",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stRun",
+      "propertySetterName": "setStRun",
+      "propertyGetterName": "getStRun"
+    },
+    {
+      "name": "data-tchmi-onvaluechanged",
+      "displayName": "onValueChanged",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "onValueChanged",
+      "propertySetterName": "setOnValueChanged",
+      "propertyGetterName": "getOnValueChanged"
+    },
+    {
+      "name": "data-tchmi-refresh",
+      "displayName": "Refresh",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "Refresh",
+      "propertySetterName": "setRefresh",
+      "propertyGetterName": "getRefresh"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

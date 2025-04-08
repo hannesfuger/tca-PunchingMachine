@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "ST_MatRun": {
+      "properties": {
+        "astElements": {},
+        "bActive": {
+          "$ref": "tchmi:general#/definitions/BOOL"
+        },
+        "bOutletbelt": {
+          "$ref": "tchmi:general#/definitions/BOOL"
+        },
+        "fThresholdX": {
+          "$ref": "tchmi:general#/definitions/LREAL"
+        },
+        "fThresholdY": {
+          "$ref": "tchmi:general#/definitions/LREAL"
+        },
+        "nOutletbeltIntervall": {
+          "$ref": "tchmi:general#/definitions/UINT"
+        },
+        "sMatRunName": {
+          "$ref": "tchmi:general#/definitions/STRING(80)"
+        },
+        "sMatRunNr": {
+          "$ref": "tchmi:general#/definitions/UINT"
+        },
+        "sNotice": {
+          "allOf": [
+            {
+              "maxLength": 255
+            },
+            {
+              "$ref": "tchmi:general#/definitions/String"
+            }
+          ]
+        },
+        "stTool": {},
+        "stToolHolder": {}
+      },
+      "type": "object"
+    },
+    "Array[0..] OF String": {
+      "items": {
+        "$ref": "tchmi:general#/definitions/String"
+      },
+      "type": "array"
+    }
+  }
+}

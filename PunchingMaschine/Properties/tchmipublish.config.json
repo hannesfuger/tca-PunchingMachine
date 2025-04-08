@@ -1,0 +1,31 @@
+[
+  {
+    "serverExtensions": [],
+    "profileName": "PunchingMachine",
+    "publishMode": "TcHmi",
+    "targetDirectory": "",
+    "deleteAllFilesBeforePublish": true,
+    "deleteExtensionDataBeforePublish": true,
+    "alwaysPublishLocalServerConfiguration": true,
+    "temporaryPublishWithoutServerConfiguration": false,
+    "abortOnErrors": true,
+    "createPublishLog": false,
+    "salt": "f79cdc6d4fe145899bce466b48190147",
+    "encryptedTcHmiServerPassword": "AhJzexoWV/BIASfBPYvCSR9FK4wBVdKy868hk8ZpCW4=",
+    "tcHmiServerHost": "asma-plc05",
+    "tcHmiServerPort": "1020",
+    "uploadTimeout": "60",
+    "connectionTimeout": "5",
+    "requestTimeout": "60",
+    "extensionStartupTimeout": "120",
+    "clientCertificateCN": "",
+    "tcHmiUseTLS": true,
+    "useClientCertificate": false,
+    "launchBrowserAfterPublish": true,
+    "createVirtualDirectoriesOnTargetSystem": false,
+    "tcHmiServerUserName": "__SystemAdministrator",
+    "tcHmiDestinationUrl": "https://asma-plc05:1020",
+    "publishConfiguration": "local",
+    "tcHmiIgnoreCertificateErrors": true
+  }
+]

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisGearOutParameter" Id="{10b0e8f0-5740-413a-80ea-e58b175a566c}">
+    <Declaration><![CDATA[/// GearOut parameter strucure
+TYPE ST_AxisGearOutParameter :
+STRUCT
+	/// Halt axis after gear out
+	bHaltAxis: BOOL := TRUE;
+	/// Gear out (not implemented)
+	stOptions: ST_GearOutOptions;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

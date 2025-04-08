@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="FB_EtherCATBus" Id="{55f2b2ae-663d-494c-86e1-ccb5cb9949fd}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_EtherCATBus EXTENDS FB_ComponentBase
+
+VAR
+	/// IO structure
+	stIO 				: REFERENCE TO ST_EtherCatIO;
+	oldEtherCATState	: INT;
+	n3072Err			: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// EtherCAT driver.
+/// Hannes Fuger / asma.at / 12.2015
+///]]></ST>
+    </Implementation>
+    <Method Name="FB_init" Id="{29a3bf8c-a6c8-4ef7-99a3-f5067604e32f}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_EtherCAT;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{3e887635-f8de-4acc-be05-4b1be9527b99}">
+      <Declaration><![CDATA[METHOD Run : E_ComponentState
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+// chk reference
+IF NOT __ISVALIDREF(fbEventLog) THEN
+	RETURN;
+END_IF
+
+IF oldEtherCATState = stIo.eEtherCATState THEN
+	RETURN;
+ELSE
+	oldEtherCATState := stIo.eEtherCATState;
+END_IF
+
+
+
+// switch EtherCAT State
+CASE stIO.eEtherCATState OF
+	/// Link error
+	eEtherCATState_LinkError :
+		WriteError(eEvent_hardwareError, 'EtherCAT: Link error');
+		
+	/// I/O locked after link error (I/O reset required)
+	eEtherCATState_IoLockedAfterLinkErr :
+		WriteError(eEvent_hardwareError, 'EtherCAT: I/O locked after link error (I/O reset required)');
+	
+	/// Link error (redundancy adapter)
+	eEtherCATState_LinkErrRedAdapter :
+		WriteError(eEvent_hardwareError, 'EtherCAT: Link error (redundancy adapter)');
+	
+	/// Missing one frame (redundancy mode)
+	eEtherCATState_MissingFrame :
+		WriteError(eEvent_hardwareError, 'EtherCAT: Missing one frame (redundancy mode)');
+	
+	/// Out of send resources (I/O reset required)
+	eEtherCATState_OutOfSendResources :
+		WriteError(eEvent_hardwareError, 'EtherCAT: Out of send resources (I/O reset required)');
+	
+	/// Watchdog triggered
+	eEtherCATState_WatchdogTriggered :
+		WriteError(eEvent_hardwareError, 'EtherCAT: Watchdog triggered');
+	
+	/// Ethernet driver (miniport) not found
+	eEtherCATState_EthernetDrvNotFound :
+		WriteError(eEvent_hardwareError, 'EtherCAT: Ethernet driver (miniport) not found');
+	
+	/// I/O reset active
+	eEtherCATState_IO_resetActive :
+		WriteError(eEvent_hardwareError, 'EtherCAT: I/O reset active');
+	
+	/// At least one device in 'INIT' state
+	eEtherCATState_AtLeastOneDeviceInit :
+		WriteError(eEvent_hardwareError, 'EtherCAT: At least one device in INIT state');
+	
+	///  At least one device in 'PRE-OP' state
+	eEtherCATState_AtLeastOneDevicePreOp :
+		WriteError(eEvent_hardwareError, 'EtherCAT: At least one device in PRE-OP state');
+	
+	/// At least one device in 'SAFE-OP' state
+	eEtherCATState_AtLeastOneDeviceSafeOp :
+		WriteError(eEvent_hardwareError, 'EtherCAT: At least one device in SAFE-OP state');
+	
+	/// At least one device indicates an error state
+	eEtherCATState_AtLeastOneDeviceError :
+		WriteError(eEvent_hardwareError, 'EtherCAT: At least one device indicates an error state');
+	
+	/// DC not in sync
+	eEtherCATState_DC_notInSync :
+		WriteError(eEvent_hardwareError, 'EtherCAT: DC not in sync');
+
+	ELSE // default 
+		IF stIO.eEtherCATState = 1024 THEN
+			n3072Err := n3072Err + 1;
+		ELSIF stIO.eEtherCATState = 3072 THEN
+			n3072Err := n3072Err + 1;
+		ELSIF stIO.eEtherCATState <> 0 THEN
+			WriteError(eEvent_hardwareError, Concat('EtherCAT Error: ', INT_TO_STRING(stIO.eEtherCATState)));
+		END_IF
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetReferences" Id="{87c0e814-fac0-455c-a362-eecf97c34742}">
+      <Declaration><![CDATA[/// Dependency injection method.
+{attribute 'object_name' := 'SetReferences'}
+METHOD SetReferences
+VAR_IN_OUT
+	/// IO structure
+	stRefIO		: ST_EtherCatIO;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// set up references
+stIO REF= stRefIO;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_EtherCATBus">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EtherCATBus.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EtherCATBus.Run">
+      <LineId Id="81" Count="78" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_EtherCATBus.SetReferences">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

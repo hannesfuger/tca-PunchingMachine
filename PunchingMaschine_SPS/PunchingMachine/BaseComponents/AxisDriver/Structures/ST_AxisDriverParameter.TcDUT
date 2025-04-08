@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisDriverParameter" Id="{4ab1d32b-1105-47c8-889d-f8e492bbd8cb}">
+    <Declaration><![CDATA[/// Parameter set for axis driver
+TYPE ST_AxisDriverParameter :
+STRUCT
+	/// General axis parameter
+	stGeneralPrm: ST_AxisGeneralParameter;
+	/// Parameter for halting the axis
+	stHaltPrm: ST_AxisHaltParameter;
+	/// Parameter for stopping the axis
+	stStopPrm: ST_AxisStopParameter;
+	/// Parameter for axis homing
+	stHomingPrm: ST_AxisHomingParameter;
+	/// Parameter for axis set position
+	stSetPosPrm: ST_AxisSetPosParameter;
+	/// Parameter for axis homing
+	stJogPrm: ST_AxisJogParameter;
+	/// Parameter for accelerating jog
+	stJogAccPrm: ST_AxisJogAccParameter;
+	/// Parameter for move axis absolute
+	stMovAbsPrm: ST_AxisMoveAbsParameter;
+	/// Parameter for move axis additive
+	stMovAddPrm: ST_AxisMoveAddParameter;
+	/// Parameter for move axis relative
+	stMovRelPrm: ST_AxisMoveRelParameter;
+	/// Parameter for move axis modulo
+	stMovModPrm: ST_AxisMoveModParameter;
+	/// Parameter for move axis velocity
+	stMovVelPrm: ST_AxisMoveVelParameter;
+	/// Parameter for axis electronic gear-in
+	stGearInPrm: ST_AxisGearInParameter;
+	/// Parameter for axis electronic gear-out
+	stGearOutPrm: ST_AxisGearOutParameter;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

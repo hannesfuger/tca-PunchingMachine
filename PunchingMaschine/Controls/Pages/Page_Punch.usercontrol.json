@@ -1,0 +1,66 @@
+{
+  "parameters": [
+    {
+      "name": "data-tchmi-stmat",
+      "displayName": "stMat",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_Mat",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stMat",
+      "propertySetterName": "setStMat",
+      "propertyGetterName": "getStMat"
+    },
+    {
+      "name": "data-tchmi-stpunchjob",
+      "displayName": "stPunchjob",
+      "visible": true,
+      "type": "tchmi:server#/definitions/PLC1.ST_PunchJob",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "stPunchjob",
+      "propertySetterName": "setStPunchjob",
+      "propertyGetterName": "getStPunchjob"
+    },
+    {
+      "name": "data-tchmi-_onvaluechanged",
+      "displayName": "_onValueChanged",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "_onValueChanged",
+      "propertySetterName": "set_onValueChanged",
+      "propertyGetterName": "get_onValueChanged"
+    },
+    {
+      "name": "data-tchmi-refresh",
+      "displayName": "Refresh",
+      "visible": true,
+      "type": "tchmi:general#/definitions/BOOL",
+      "category": "",
+      "description": "",
+      "requiredOnCompile": false,
+      "readOnly": false,
+      "bindable": true,
+      "heritable": true,
+      "propertyName": "Refresh",
+      "propertySetterName": "setRefresh",
+      "propertyGetterName": "getRefresh"
+    }
+  ],
+  "virtualRights": [],
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/UserControlConfig.Schema.json"
+}

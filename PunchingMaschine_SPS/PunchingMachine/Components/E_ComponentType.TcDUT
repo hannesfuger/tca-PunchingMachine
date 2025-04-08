@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="E_ComponentType" Id="{7244671b-21a1-4221-b075-5c61b47c873d}">
+    <Declaration><![CDATA[TYPE E_ComponentType :
+(
+	// BASE COMPONENTS
+	eComponentType_none := 0,
+	eComponentType_EtherCAT := 1,
+	eComponentType_EtherCATBox := 2,
+	eComponentType_Supervision := 3,	
+	eComponentType_Safety := 4,	
+	eComponentType_EventLog := 5,
+	eComponentType_DigitalSensor := 6,
+	eComponentType_DigitalOutput := 7,
+	eComponentType_Axis := 8,
+	eComponentType_Cylinder := 9,
+	eComponentType_SafetyLock := 10,
+	
+	// SPECIFIC COMPONENTS
+	eComponentType_PunchEngine := 100,
+	eComponentType_MatAndToolHandling := 101,
+	eComponentType_Mat := 102
+
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

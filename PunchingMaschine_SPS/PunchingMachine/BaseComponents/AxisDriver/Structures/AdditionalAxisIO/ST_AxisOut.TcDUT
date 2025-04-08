@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_AxisOut" Id="{74c42886-c77c-4611-94a2-557a3ab1c060}">
+    <Declaration><![CDATA[TYPE ST_AxisOut :
+STRUCT
+	/// Ext. fan control
+	bExternalFan: BOOL;
+	/// The bipolar torque limit value limits the maximum torque symmetrically in both directions. [1/10 %]
+	iBipolarTorqueLimitValue: INT := 1000;
+	iPositiveTorqueLimitValue: INT := 1000;
+	iNegativeTorqueLimitValue: INT := 1000;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

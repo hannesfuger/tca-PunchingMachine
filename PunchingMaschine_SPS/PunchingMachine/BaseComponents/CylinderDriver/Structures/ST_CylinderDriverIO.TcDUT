@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_CylinderDriverIO" Id="{64408428-1adb-4d0b-b796-055b829c3afe}">
+    <Declaration><![CDATA[TYPE ST_CylinderDriverIO :
+STRUCT
+	stIn 	AT%I* : ST_CylinderDriverIn;
+	stOut	AT%Q* : ST_CylinderDriverOut;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

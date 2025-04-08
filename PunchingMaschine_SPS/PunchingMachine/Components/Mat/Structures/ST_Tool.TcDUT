@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_Tool" Id="{178166e0-7ada-4267-9cb2-5681f09f78d9}">
+    <Declaration><![CDATA[TYPE ST_Tool :
+STRUCT
+	// Info
+	nToolNr						: UINT;
+	stToolName					: STRING;
+	sNotice						: T_MAXSTRING;
+	                        	
+	// Geometry             	
+	eDieGeometry				: E_Geometry;	
+	fLength						: REAL;
+	fWidth						: REAL;	
+	fRoundCorner				: REAL;
+	fRadius						: REAL;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

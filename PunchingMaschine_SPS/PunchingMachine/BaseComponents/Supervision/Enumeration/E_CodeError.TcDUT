@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_CodeError" Id="{72fe2564-6da8-4feb-a7b4-0319ff2f90c3}">
+    <Declaration><![CDATA[TYPE E_CodeError :
+(
+	eCodeError_none := 0,
+	eCodeError_bounds := 1,
+	eCodeError_divDInt := 2,
+	eCodeError_divLInt := 3,
+	eCodeError_divLReal := 4,
+	eCodeError_divReal := 5,
+	eCodeError_pointer := 6,
+	eCodeError_rangeSigned := 7,
+	eCodeError_rangeUnsigned := 8,
+	eCodeError_maxIdx := 9
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

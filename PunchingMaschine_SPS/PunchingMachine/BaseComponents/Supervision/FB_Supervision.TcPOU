@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="FB_Supervision" Id="{16fd42b7-5d3c-4e1b-8711-c5cda491d069}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Supervision function block - system watchdog
+FUNCTION_BLOCK INTERNAL FB_Supervision EXTENDS FB_ComponentBase
+
+VAR
+	//aCodeError						: REFERENCE TO ARRAY[0..eCodeError_maxIdx] OF BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[/// 
+/// supervision function block of the project
+/// TP/www.rmth.at/11.2014
+/// 
+
+//ToDo: run supervision (ES, Safety signals, IO-errors, etc.)
+]]></ST>
+    </Implementation>
+    <Method Name="FB_init" Id="{84d16d0f-b0fa-4188-be58-4ce0223bb246}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_Supervision;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reset" Id="{fd974888-77e7-4fe6-99f4-981ba3a6bb60}">
+      <Declaration><![CDATA[/// resets all notification flags and reset-needed state 
+{attribute '' := ''}
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+VAR
+	ii: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+// reset code errors
+MEMSET(ADR(GVL_Supervision.aCodeErr), 0, SIZEOF(GVL_Supervision.aCodeErr));]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{2815d9ce-0958-42da-be56-f012941973a8}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState
+VAR
+	ii			: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+// chk reference
+IF NOT __ISVALIDREF(fbEventLog) THEN //OR NOT __ISVALIDREF(aCodeError) THEN
+	RETURN;
+END_IF
+
+//ToDo: run supervision (ES, Safety signals, IO-errors, etc.)
+
+// task cycle time exceeded
+IF Statics.stPlcSystemInfo.stPlcTaskSystemInfo.CycleTimeExceeded THEN
+	WriteError(eEvent_systemError, 'Cycletime exceeded');
+END_IF
+
+// check for code errors
+IF GVL_Supervision.aCodeErr[eCodeError_bounds] THEN
+	WriteError(eEvent_systemError, 'Code error: check bounds.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_divDInt] THEN
+	WriteError(eEvent_systemError, 'Code error: check div int.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_divLInt] THEN
+	WriteError(eEvent_systemError, 'Code error: check div lint.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_divLReal] THEN
+	WriteError(eEvent_systemError, 'Code error: check div lreal.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_divReal] THEN
+	WriteError(eEvent_systemError, 'Code error: check div real.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_pointer] THEN
+	WriteError(eEvent_systemError, 'Code error: check pointer.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_rangeSigned] THEN
+	WriteError(eEvent_systemError, 'Code error: check range signed.');
+	
+ELSIF GVL_Supervision.aCodeErr[eCodeError_rangeUnsigned] THEN
+	WriteError(eEvent_systemError, 'Code error: check range usigned.');
+	
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Supervision">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Supervision.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Supervision.Reset">
+      <LineId Id="3" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Supervision.Run">
+      <LineId Id="3" Count="41" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

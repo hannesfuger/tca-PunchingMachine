@@ -1,0 +1,335 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="FB_CompositionBase" Id="{26628a25-4aa5-4923-bc9b-743bc40c8134}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CompositionBase EXTENDS FB_ComponentBase
+VAR	
+	aComponents					: ARRAY[0..iMaxIdxComponent] OF ITFComponent;
+	eCompostitionState			: E_ComponentState;
+	nComponent					: INT := -1;	
+	nErrComponent				: INT;
+	sErrComponentName			: STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// 
+/// HF/www.asma.at/02.2018
+/// 
+]]></ST>
+    </Implementation>
+    <Property Name="ComponentState" Id="{884ac6f0-2a5f-4463-a592-c6513cee2658}">
+      <Declaration><![CDATA[PROPERTY ComponentState : E_ComponentState]]></Declaration>
+      <Get Name="Get" Id="{1327e2aa-71a3-4e9a-8c2f-105121e18e09}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ComponentState := eCompostitionState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="CompostitionState" Id="{9ebc0614-d830-4fb7-9f05-cb42458cf1e3}">
+      <Declaration><![CDATA[PROPERTY CompostitionState : E_ComponentState]]></Declaration>
+      <Get Name="Get" Id="{df2e4c52-4172-4ac7-9a57-490e8538e565}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[CompostitionState := eCompostitionState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="GetComponent" Id="{42c0899e-3452-46bb-912b-b3a7f3fc85ea}">
+      <Declaration><![CDATA[METHOD GetComponent : POINTER TO FB_ComponentBase
+VAR_INPUT
+	nSubComp			:INT;	
+END_VAR
+
+VAR
+	ptTmp				: POINTER TO FB_ComponentBase;
+	bFound				: BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bFound := __QUERYPOINTER(aComponents[nSubComp], ptTmp);
+
+IF bFound THEN
+	GetComponent := ptTmp;
+ELSE
+	GetComponent := 0;
+END_IF	
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetItfComponent" Id="{e2740927-c337-4beb-813f-23048662d66e}">
+      <Declaration><![CDATA[METHOD GetItfComponent : ITFComponent
+VAR_INPUT
+	nSubComp			:INT;	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[GetItfComponent := aComponents[nSubComp];
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="HaltAll" Id="{b74779d5-a6be-47d0-954e-9123d3324930}">
+      <Declaration><![CDATA[METHOD HaltAll
+VAR
+	iIdx			: INT;
+	itfAxis			: ITFMotionComponent;
+	//ptLifting		: POINTER TO FB_LiftingUnit;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// run all components
+FOR iIdx := 0 TO GVL_CONST.iMaxIdxComponent DO
+	// chk valid pointer
+	IF aComponents[iIdx] <> 0 THEN
+		// chk component is active
+		IF NOT aComponents[iIdx].Active THEN
+			CONTINUE;
+		END_IF
+ 
+		IF __QUERYINTERFACE(aComponents[iIdx], itfAxis) THEN
+			itfAxis.Halt();	
+		END_IF
+		
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LoadComponents" Id="{fd1cb7e4-1d93-40b3-94e6-f70c9797ef8e}">
+      <Declaration><![CDATA[METHOD LoadComponents
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nComponent := 0;
+MEMSET(ADR(aComponents), 0, SIZEOF(aComponents));
+eCompostitionState := E_ComponentState.eComponentState_none;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RegisterComponent" Id="{8cf7c0b3-dc6b-4a07-94b9-9d113be3a86c}">
+      <Declaration><![CDATA[/// Registrierung von PM Sub-Komponenten.
+METHOD RegisterComponent
+VAR_INPUT
+	ID				: INT := 0;
+	fbComponent  	: ITFComponent;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fbComponent = 0 THEN
+	sClearText := 'invalid sub-component pointer!';
+	eCompostitionState := eComponentState_error;
+	RETURN;
+END_IF
+
+// register sub-component
+fbComponent.ID := ID;
+fbComponent.SetEventLogReference(fbEventlog);
+aComponents[nComponent] := fbComponent;
+
+// increment counter
+IF nComponent < GVL_CONST.iMaxIdxComponent THEN
+	nComponent := nComponent + 1;
+ELSE
+	sClearText := 'max. component index overrun!';
+	eCompostitionState := eComponentState_error;
+	RETURN;
+END_IF
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reset" Id="{1f6422c0-b152-44b0-93ad-eb6fb62f9251}">
+      <Declaration><![CDATA[/// Reset component logic
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// abstract base logic reset
+
+sLastError := sEmpty;
+MEMSET(ADR(stLastEvent), 0, SIZEOF(ST_EVENT));
+
+// default: set state to ready
+eState := E_ComponentState.eComponentState_ready;
+
+/// reset all components				
+ResetComponents(FALSE, FALSE, 0, 0);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ResetComponents" Id="{6977f431-abb7-463b-8a67-0e1c5e31d644}">
+      <Declaration><![CDATA[METHOD ResetComponents
+VAR_INPUT
+	bOnlyActive			: BOOL;
+	bOnlyNotRunning		: BOOL;
+	eComponentType		: E_ComponentType;
+	eExpectType			: E_ComponentType;
+END_VAR
+
+VAR
+	iIdx				: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// reset all components				
+FOR iIdx := 0 TO GVL_CONST.iMaxIdxComponent DO
+	IF aComponents[iIdx] <> 0 THEN
+		
+		IF aComponents[iIdx].State = eComponentState_running AND bOnlyNotRunning THEN
+			CONTINUE;
+		END_IF
+	
+		IF bOnlyActive AND NOT aComponents[iIdx].Active THEN
+			CONTINUE;
+		END_IF
+		
+		IF (eComponentType = eComponentType_none OR aComponents[iIdx].Typ = eComponentType) AND
+		   (eExpectType = eComponentType_none OR aComponents[iIdx].Typ <> eExpectType) THEN
+			aComponents[iIdx].Reset();		
+		END_IF
+		
+	END_IF
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{f9d7ab07-7da4-48af-b597-c5d26c4485c9}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState
+
+VAR
+	iIdx			: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// abstract base logic run
+
+// only rdy state may lead to run
+IF eState = E_ComponentState.eComponentState_ready THEN
+	eState := E_ComponentState.eComponentState_running;
+END_IF
+
+
+// run HMI & logger
+//fbEventLog.Run();
+
+// latch resetting state
+//bIsResetting := (eState = eComponentState_resetting);
+
+/// run components
+
+// set overall component state, prio:
+// 1. E_ComponentState.eComponentState_error		( --> at least one has error)
+// 2. E_ComponentState.eComponentState_none			( --> at least one state is not set)
+// 3. E_ComponentState.eComponentState_resetting	( --> at least one is rsetting)
+// 4. E_ComponentState.eComponentState_ready		( --> at least one is in ready state)
+// 5. E_ComponentState.eComponentState_running		( --> all active are running)
+
+// init with running state
+eCompostitionState := eComponentState_running;
+
+// run all components
+FOR iIdx := 0 TO GVL_CONST.iMaxIdxComponent DO
+	// chk valid pointer
+	IF aComponents[iIdx] <> 0 THEN
+		// chk component is active
+		IF aComponents[iIdx].Active THEN
+			// run component and get it's state 
+			CASE aComponents[iIdx].Run() OF
+				eComponentState_error:
+					IF nErrComponent = 0 THEN
+						nErrComponent := iIdx;
+						sErrComponentName := aComponents[iIdx].Name;
+					END_IF
+					eCompostitionState := eComponentState_error;	
+					
+				eComponentState_none:
+					IF eCompostitionState <> eComponentState_error THEN
+						eCompostitionState := eComponentState_none;
+					END_IF
+					
+				eComponentState_resetting:
+					IF eCompostitionState <> eComponentState_error AND eCompostitionState <> eComponentState_none THEN
+						eCompostitionState := eComponentState_resetting;
+					END_IF
+					
+				eComponentState_ready:
+					IF eCompostitionState = eComponentState_running THEN
+						eCompostitionState := eComponentState_ready;
+					END_IF					
+			END_CASE
+		END_IF
+	END_IF
+END_FOR
+
+eState := eCompostitionState;
+
+
+Run := eState;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_CompositionBase">
+      <LineId Id="11" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.ComponentState.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.CompostitionState.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.GetComponent">
+      <LineId Id="3" Count="7" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.GetItfComponent">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.HaltAll">
+      <LineId Id="3" Count="11" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.LoadComponents">
+      <LineId Id="3" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="4" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.RegisterComponent">
+      <LineId Id="3" Count="4" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="32" Count="2" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="14" Count="7" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.Reset">
+      <LineId Id="6" Count="5" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.ResetComponents">
+      <LineId Id="3" Count="18" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CompositionBase.Run">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="13" Count="52" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="66" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

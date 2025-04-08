@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="ST_EtherCatIO" Id="{f5f3556c-d915-418b-9e85-20dd3d48aa43}">
+    <Declaration><![CDATA[/// EtherCAT IO structure
+TYPE ST_EtherCatIO :
+STRUCT
+	
+	/// Data from device.
+	eEtherCATState			AT %I*	: 	E_EtherCATState;
+	
+	/// Data to device.           
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

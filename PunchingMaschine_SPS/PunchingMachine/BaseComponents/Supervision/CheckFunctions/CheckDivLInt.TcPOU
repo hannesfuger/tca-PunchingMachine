@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="CheckDivLInt" Id="{a0ba4f07-7587-44a7-aef9-ee47a1cc821d}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Implicitly generated code : DO NOT EDIT!!!
+/// Checks for division by 0, if divisor is 0, replace it with 1 and report error
+{attribute 'no_check' := ''}
+{attribute 'check_div_int64' := ''}
+FUNCTION CheckDivLInt : LINT
+VAR_INPUT
+	divisor: LINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF divisor = 0 THEN
+	// replace divisor and report error if necessary
+	CheckDivLInt := 1;
+	GVL_Supervision.aCodeErr[eCodeError_divLInt] := TRUE;
+ELSE
+	CheckDivLInt := divisor;
+END_IF;]]></ST>
+    </Implementation>
+    <LineIds Name="CheckDivLInt">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

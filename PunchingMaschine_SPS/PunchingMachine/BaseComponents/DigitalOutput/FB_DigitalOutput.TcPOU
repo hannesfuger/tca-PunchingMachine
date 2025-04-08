@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="FB_DigitalOutput" Id="{7a1b4279-643f-4dd3-b476-66c65e5d5c14}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_DigitalOutput EXTENDS FB_ComponentBase
+VAR
+	/// IO reference
+	stOut 					: REFERENCE TO ST_DigitalOutputOut;
+	
+	fbButton				: FB_sensor;
+	
+	fbSignal				: FB_TON_RMTH;
+	
+	tDelay					: TIME;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+]]></ST>
+    </Implementation>
+    <Folder Name="Factory" Id="{8f45a723-4b92-4443-905b-54356b390988}" />
+    <Folder Name="Properties" Id="{e3c546d1-1da3-4093-a99f-46a1641ca42d}" />
+    <Method Name="AutoOff" Id="{32887618-f119-42cc-89c7-266c605cafd9}">
+      <Declaration><![CDATA[METHOD AutoOff
+VAR_INPUT
+	Delay					: TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tDelay:= Delay;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{ce813b69-a7e0-459d-b586-c372a8b01927}" FolderPath="Factory\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_DigitalOutput;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="OutputState" Id="{9e3bf72a-dc3e-48d6-abea-70df58e7c678}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY OutputState : BOOL]]></Declaration>
+      <Get Name="Get" Id="{d58b873f-5096-4ced-96c5-783090248851}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[OutputState := stOut.bOutput;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{8bb56281-5db6-49b1-a74d-b8976b878f5d}">
+      <Declaration><![CDATA[METHOD Reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+IF NOT __ISVALIDREF(stOut) THEN
+	RETURN;
+END_IF
+
+stOut.bOutput := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{7794ab06-27f2-40a1-81ef-128c9449c925}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+IF NOT __ISVALIDREF(stOut) THEN
+	RETURN;
+END_IF
+
+fbSignal(in:= stOut.bOutput, pt:=tDelay);
+
+// auto switch off
+IF tDelay <> T#0S AND fbSignal.Q THEN
+	stOut.bOutput := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetReferences" Id="{6c69d759-090d-462e-945b-b4fde1a7b9b7}" FolderPath="Factory\">
+      <Declaration><![CDATA[METHOD SetReferences : E_OperationResult
+VAR_IN_OUT
+	/// IO structure
+	DigitalOutput 		: ST_DigitalOutputIO;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stOut REF= DigitalOutput.stOut;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SwitchState" Id="{a8c46daa-6b51-4378-bfa7-3acaf30e0fac}">
+      <Declaration><![CDATA[METHOD SwitchState
+VAR_INPUT
+	bEnable				: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stout.bOutput := bEnable;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_DigitalOutput">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.AutoOff">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.OutputState.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.Reset">
+      <LineId Id="3" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.Run">
+      <LineId Id="3" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="5" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.SetReferences">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DigitalOutput.SwitchState">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,28 @@
+{
+  "function": {
+    "name": "FlipRun",
+    "displayName": "FlipRun",
+    "visible": true,
+    "category": "",
+    "injectContextObject": false,
+    "description": "",
+    "returnValue": {
+      "type": "tchmi:project#/definitions/ST_MatRun",
+      "description": ""
+    },
+    "arguments": [
+      {
+        "name": "MatRun",
+        "displayName": "MatRun",
+        "type": "tchmi:project#/definitions/ST_MatRun",
+        "description": "This is an important Parameter which does... This text is used in a tooltip.",
+        "defaultValue": "{\r\n  \"astElements\": [],\r\n  \"bActive\": null,\r\n  \"bOutletbelt\": null,\r\n  \"fThresholdX\": null,\r\n  \"fThresholdY\": null,\r\n  \"nOutletbeltIntervall\": null,\r\n  \"sMatRunName\": null,\r\n  \"sMatRunNr\": null,\r\n  \"sNotice\": null,\r\n  \"stTool\": null,\r\n  \"stToolHolder\": null\r\n}",
+        "required": true,
+        "bindable": true,
+        "restParameter": false,
+        "asReference": false
+      }
+    ]
+  },
+  "$schema": "../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/FunctionDescription.Schema.json"
+}

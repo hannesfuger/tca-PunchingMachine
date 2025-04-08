@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="P_Fast" Id="{7047c25d-a1ce-442b-b871-40c96cfb03bb}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Fast Task program
+PROGRAM P_Fast
+VAR CONSTANT
+	iMaxTaskAllocation				: INT := 10;
+END_VAR
+
+VAR
+	ii	: INT;
+	aItfTasks						: ARRAY[0..255] OF ITF_TaskAllocation;	  
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[/// run cyclic fast tasks
+FOR ii := 0 TO iMaxTaskAllocation DO
+	IF aItfTasks[ii] = 0 THEN
+		CONTINUE;
+	END_IF
+	IF aItfTasks[ii].Task = E_Task.eTask_fast THEN
+		aItfTasks[ii].Invoke();
+	END_IF
+END_FOR]]></ST>
+    </Implementation>
+    <Method Name="RegisterTask" Id="{f9918118-ef6a-461d-bcb4-e5063c741d59}">
+      <Declaration><![CDATA[METHOD RegisterTask : E_OperationResult
+VAR_INPUT
+	/// Task to be registered
+	ITask	: ITF_TaskAllocation;
+END_VAR
+VAR
+	ii	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// queue task
+FOR ii := 0 TO iMaxTaskAllocation DO
+	IF aItfTasks[ii] <> 0 THEN
+		IF aItfTasks[ii].TaskId <> ITask.TaskId THEN
+			CONTINUE;
+		END_IF
+	END_IF
+	ITask.TaskId := ii + 1;
+	aItfTasks[ii] := ITask;
+	EXIT;
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="UnregisterTask" Id="{c7ea2e1a-97e0-4923-8c7a-d8f1ccd94c79}">
+      <Declaration><![CDATA[METHOD UnregisterTask : E_OperationResult
+VAR_INPUT
+	/// Task to be unregistered
+	ITask	: ITF_TaskAllocation;
+END_VAR
+VAR
+	ii	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// dequeue task
+FOR ii := 0 TO iMaxTaskAllocation DO
+	IF aItfTasks[ii] = 0 THEN
+		CONTINUE;
+	END_IF
+	IF aItfTasks[ii].TaskId <> ITask.TaskId THEN
+		CONTINUE;
+	END_IF
+	aItfTasks[ii] := 0;
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="P_Fast">
+      <LineId Id="3" Count="7" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="P_Fast.RegisterTask">
+      <LineId Id="6" Count="9" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="P_Fast.UnregisterTask">
+      <LineId Id="6" Count="8" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

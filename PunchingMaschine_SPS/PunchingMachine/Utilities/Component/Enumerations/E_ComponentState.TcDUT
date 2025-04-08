@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_ComponentState" Id="{ba2c4754-2c03-4e6a-8041-14c3886f45e5}">
+    <Declaration><![CDATA[/// Enumeration of all possible (sub) component states
+TYPE E_ComponentState :
+(
+	/// Component state not set
+	eComponentState_none := 0,
+	/// Component is resetting
+	eComponentState_resetting,
+	/// Component is ready
+	eComponentState_ready,
+	/// Component is running
+	eComponentState_running,
+	/// Component has error
+	eComponentState_error
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

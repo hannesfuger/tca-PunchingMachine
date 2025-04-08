@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_Element" Id="{c638eafc-b828-47c1-ab27-43e0ffb99630}">
+    <Declaration><![CDATA[TYPE ST_Element :
+STRUCT
+	bActive				: BOOL;
+	
+	fX_Pos				: REAL;
+	fY_Pos				: REAL;
+	
+	bCentering			: BOOL;
+	bMirroring			: BOOL;
+	
+	eOrigin				: E_ElementOrigin;
+	
+	nCountX				: UINT;
+	fDistanceX			: REAL;
+		
+	nCountY				: UINT;
+	fDistanceY			: REAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

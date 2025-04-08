@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_Axis" Id="{c02cfdc7-3fb2-4d1d-923e-5fb715fff89a}">
+    <Declaration><![CDATA[/// Enumeration of all axis drives.
+TYPE E_Axis :
+(
+	eAxis_X					:= 0 ,
+	eAxis_Y					:= 1 ,
+	eAxis_Punch				:= 2 ,
+
+	
+	// IMPORTANT: last entry
+	eAxis_max
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

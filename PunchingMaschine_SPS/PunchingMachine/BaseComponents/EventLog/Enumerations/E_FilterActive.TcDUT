@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_FilterActive" Id="{7b98fbf7-ef6c-40b0-a4f2-4d05e82d2059}">
+    <Declaration><![CDATA[/// enumeration of all possible priority
+TYPE E_FilterActive :
+(
+	eFilter_none := 0,
+	eFilter_activ := 1
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

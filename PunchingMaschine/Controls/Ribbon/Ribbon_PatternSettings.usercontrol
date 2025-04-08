@@ -1,0 +1,280 @@
+
+<div id="Util_EditElements" data-tchmi-user-control="" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControl" data-tchmi-top="0" data-tchmi-left="0" data-tchmi-width="1120" data-tchmi-height="265" data-tchmi-width-unit="px" data-tchmi-height-unit="px" data-tchmi-left-unit="px" data-tchmi-top-unit="px">
+
+    <div id="EditElementsDialog" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-user-control-host="" data-tchmi-fmatwidth="%pp%stMat::fWidth%/pp%" data-tchmi-height="225" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-target-user-control="Controls/Utilities/Util_HoppingElements.usercontrol" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="250" data-tchmi-width-unit="px" data-tchmi-_valuechange="%pp%bValueChange%/pp%" data-tchmi-_reload="%pp%bReload%/pp%" data-tchmi-tmpelementnr="%f%%/f%" data-tchmi-nelementnr="%pp%nSelElem%/pp%" data-tchmi-sttoolholder="%pp%__stMatRun::stToolHolder%/pp%" data-tchmi-breload="True" data-tchmi-bvaluechange="%pp%__valueChange%/pp%" data-tchmi-width-mode="Value" data-tchmi-height-mode="Value" data-tchmi-onvaluechanged="False" data-tchmi-refresh="False" data-tchmi-astelements="%pp%astElements%/pp%" data-tchmi-elementnr="%pp%selectedElementNr%/pp%" data-tchmi-selectedelement="%pp%selectedElement%/pp%">
+
+
+        <script data-tchmi-target-attribute="data-tchmi-clipboardelement" type="application/json">
+            {
+            "bActive": true,
+            "fDistanceX": 0.0,
+            "fDistanceY": 0.0,
+            "fX_Pos": 0.0,
+            "fY_Pos": 0.0,
+            "nCountX": 0,
+            "nCountY": 0
+            }
+        </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <script data-tchmi-target-attribute="data-tchmi-tmpelement" type="application/json">
+            {}
+        </script>
+
+        <script data-tchmi-target-attribute="data-tchmi-__clipboardelement" type="application/json">        
+        {}
+        </script>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "%ctrl%EditElementsDialog::onValueChanged%/ctrl%",
+    "actions": [
+      {
+        "objectType": "Function",
+        "active": true,
+        "fn": "SetElementByIndex",
+        "fnParams": [
+          {
+            "objectType": "Symbol",
+            "symbolExpression": "%pp%astElements%/pp%"
+          },
+          {
+            "objectType": "Symbol",
+            "symbolExpression": "%pp%selectedElementNr%/pp%"
+          },
+          {
+            "objectType": "Symbol",
+            "symbolExpression": "%ctrl%EditElementsDialog::selectedElement%/ctrl%"
+          }
+        ],
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%onValueChanged%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%onValueChanged%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+</div>
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-background-color" type="application/json">
+{
+  "color": "rgba(241, 241, 241, 1)"
+}
+</script>
+<div id="Element_3" data-tchmi-type="TcHmi.Controls.System.TcHmiUserControlHost" data-tchmi-_valuechanged="False" data-tchmi-height="225" data-tchmi-height-unit="px" data-tchmi-left="250" data-tchmi-left-unit="px" data-tchmi-target-user-control="Controls/Structs/StructElement.usercontrol" data-tchmi-top="0" data-tchmi-top-unit="px" data-tchmi-width="870" data-tchmi-width-unit="px" data-tchmi-onvaluechanged="False" data-tchmi-stelement="%pp%selectedElement%/pp%">
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "%ctrl%Element_3::onValueChanged%/ctrl%",
+    "actions": [
+      {
+        "objectType": "Function",
+        "active": true,
+        "fn": "SetElementByIndex",
+        "fnParams": [
+          {
+            "objectType": "Symbol",
+            "symbolExpression": "%pp%astElements%/pp%"
+          },
+          {
+            "objectType": "Symbol",
+            "symbolExpression": "%pp%selectedElementNr%/pp%"
+          },
+          {
+            "objectType": "Symbol",
+            "symbolExpression": "%ctrl%Element_3::stElement%/ctrl%"
+          }
+        ],
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%onValueChanged%/pp%",
+        "valueType": "tchmi:general#/definitions/BOOL",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "!%pp%onValueChanged%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+</div>
+<div id="TcHmiTextblock_16" data-tchmi-type="TcHmi.Controls.Beckhoff.TcHmiTextblock" data-tchmi-height="40" data-tchmi-height-unit="px" data-tchmi-left="0" data-tchmi-left-unit="px" data-tchmi-text="%l%setPattern%/l%" data-tchmi-top="225" data-tchmi-top-unit="px" data-tchmi-width="1120" data-tchmi-width-unit="px" data-tchmi-word-wrap="True" data-tchmi-background-color="%i%col_grey01%/i%" data-tchmi-text-horizontal-alignment="Left" data-tchmi-text-vertical-alignment="Center" data-tchmi-text-font-size="18">
+
+
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-text-color" type="application/json">
+{
+  "color": "rgba(255, 255, 255, 1)"
+}
+</script>
+
+<script data-tchmi-target-attribute="data-tchmi-content-padding" type="application/json">
+{
+  "left": 20,
+  "right": 0,
+  "top": 0,
+  "bottom": 0,
+  "leftUnit": "px",
+  "rightUnit": "px",
+  "topUnit": "px",
+  "bottomUnit": "px"
+}
+</script>
+</div>
+
+
+
+
+
+
+
+
+<script data-tchmi-target-attribute="data-tchmi-trigger" type="application/json">[
+  {
+    "event": "Util_EditElements.onAttached",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%selectedElementNr%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "StaticValue",
+          "valueType": "tchmi:general#/definitions/INT",
+          "value": 0
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%selectedElement%/pp%",
+        "valueType": "tchmi:server#/definitions/PLC1.ST_Element",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GetElementByIndex(%pp%astElements%/pp%,0)"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%EditElementsDialog::astElements%/ctrl%",
+        "valueType": "tchmi:server#/definitions/PLC1.ARRAY (0..32) OF ST_Element",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%pp%astElements%/pp%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%EditElementsDialog::selectedElement%/ctrl%",
+        "valueType": "tchmi:server#/definitions/PLC1.ST_Element",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%pp%selectedElement%/pp%"
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%EditElementsDialog::ElementNr%/ctrl%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "StaticValue",
+          "valueType": "tchmi:general#/definitions/INT",
+          "value": 0
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%ctrl%Element_3::stElement%/ctrl%",
+        "valueType": "tchmi:server#/definitions/PLC1.ST_Element",
+        "value": {
+          "objectType": "Symbol",
+          "symbolExpression": "%pp%selectedElement%/pp%"
+        },
+        "asyncWait": true
+      }
+    ]
+  },
+  {
+    "event": "%pp%Refresh%/pp%",
+    "actions": [
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%selectedElementNr%/pp%",
+        "valueType": "tchmi:general#/definitions/INT",
+        "value": {
+          "objectType": "StaticValue",
+          "valueType": "tchmi:general#/definitions/INT",
+          "value": 0
+        },
+        "asyncWait": true
+      },
+      {
+        "objectType": "WriteToSymbol",
+        "active": true,
+        "symbolExpression": "%pp%selectedElement%/pp%",
+        "valueType": "tchmi:server#/definitions/PLC1.ST_Element",
+        "value": {
+          "objectType": "FunctionExpression",
+          "functionExpression": "GetElementByIndex(%pp%astElements%/pp%,0)"
+        },
+        "asyncWait": true
+      }
+    ]
+  }
+]</script>
+</div>

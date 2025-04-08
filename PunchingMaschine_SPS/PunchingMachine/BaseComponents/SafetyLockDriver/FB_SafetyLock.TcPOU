@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_SafetyLock" Id="{f49f9816-ccd9-4f28-ba27-a4bc105b7a62}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Saftey Lock driver.
+FUNCTION_BLOCK FB_SafetyLock EXTENDS FB_ComponentBase
+
+VAR
+	/// IO structure
+	stIn 				: REFERENCE TO ST_SafetyLockIn;
+	stOut 				: REFERENCE TO ST_SafetyLockOut;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// Saftey Lock driver.
+/// Hannes Fuger @ asma.at		/ 09.2015
+///]]></ST>
+    </Implementation>
+    <Property Name="Closed" Id="{8e332c06-2283-43bd-add1-77c8fb609d8f}">
+      <Declaration><![CDATA[PROPERTY Closed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{eca2acd8-6121-4fc1-a7b2-84b061cd3772}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Closed := not stIn.bSaftyOK;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="FB_init" Id="{b92c8030-4ea8-4b89-aadb-b739f5e8b81e}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_SafetyLock;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Lock" Id="{2b7d873a-a38e-424d-842b-af81cca30d1a}">
+      <Declaration><![CDATA[METHOD Lock
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//cmd
+stOut.bLock := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Locked" Id="{edfa26f4-4d42-4d0c-9b04-3053e04f93be}">
+      <Declaration><![CDATA[PROPERTY Locked : BOOL]]></Declaration>
+      <Get Name="Get" Id="{0f61facd-a0fd-4a53-9b56-78aa4b9e7648}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Locked := stIn.bSaftyOK AND stOut.bLock;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Opened" Id="{e1bd4074-2366-485a-b902-119aa8f0012a}">
+      <Declaration><![CDATA[PROPERTY Opened : BOOL]]></Declaration>
+      <Get Name="Get" Id="{b6b91a07-b2e6-4977-9375-9ad49b32aaa2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Opened := NOT stIn.bSaftyOK;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Referenced" Id="{57cd8a7d-3bc9-448b-8755-fc4ccf35c994}">
+      <Declaration><![CDATA[PROPERTY Referenced : BOOL]]></Declaration>
+      <Get Name="Get" Id="{df49ae4a-98bc-4e3a-ae60-4b5fc9eae5f9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Referenced:= __ISVALIDREF(stIn) AND __ISVALIDREF(stout);
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Run" Id="{cf35d5e9-c2d1-45a6-b28f-a2e5485c2d67}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState
+VAR
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+stOut.bSaftyOk := stin.bSaftyOK;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="SafetyOk" Id="{a0cf24ce-6cb9-4e1c-ad34-8a37688db0d7}">
+      <Declaration><![CDATA[PROPERTY SafetyOk : BOOL]]></Declaration>
+      <Get Name="Get" Id="{5a03da50-9366-4c01-a844-5e47b5c0cc9c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[SafetyOk := stIn.bSaftyOK;
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="SafetyOkAdr" Id="{d188a05c-38b2-4ca6-84ed-8ad6ae744b00}">
+      <Declaration><![CDATA[PROPERTY SafetyOkAdr : POINTER TO BOOL]]></Declaration>
+      <Get Name="Get" Id="{301ad23f-e96f-46c5-8a37-b0903b3cef53}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[SafetyOkAdr := ADR(stIn.bSaftyOK);
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="SetReferences" Id="{a63495bf-664d-427a-8f43-a463bf4b87c9}">
+      <Declaration><![CDATA[/// Set IO reference
+{attribute 'object_name' := 'SetReferences'}
+METHOD SetReferences
+VAR_IN_OUT
+	/// IO structure
+	stRefIO 	: ST_SafetyLockIO;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn REF= stRefIO.stIn;
+stOut REF= stRefIO.stOut;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Unlock" Id="{f280ed83-d7c7-4037-9336-4e82f5a760e4}">
+      <Declaration><![CDATA[METHOD Unlock
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//cmd
+stOut.bLock := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_SafetyLock">
+      <LineId Id="3" Count="2" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Closed.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Lock">
+      <LineId Id="6" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Locked.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Opened.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Referenced.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Run">
+      <LineId Id="3" Count="3" />
+      <LineId Id="24" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.SafetyOk.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.SafetyOkAdr.Get">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.SetReferences">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SafetyLock.Unlock">
+      <LineId Id="8" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

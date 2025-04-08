@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisVirtualIO" Id="{197becb2-04aa-4bed-9951-9a12235ba999}">
+    <Declaration><![CDATA[/// Dummy IO for virtual axis.
+TYPE ST_AxisVirtualIO :
+STRUCT
+	stIn: ST_AxisIn;
+	stOut: ST_AxisOut;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

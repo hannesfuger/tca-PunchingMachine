@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_Task" Id="{f8e68090-0c10-4fc9-b3c9-33d39e62523a}">
+    <Declaration><![CDATA[/// Enumeration of all supported PLC Tasks.
+TYPE E_Task :
+(
+	/// Default PLC Task
+	eTask_main := 0,
+	/// Fast Task
+	eTask_fast,
+	/// Slow Task
+	eTask_slow,
+	
+	
+	eTask_max
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

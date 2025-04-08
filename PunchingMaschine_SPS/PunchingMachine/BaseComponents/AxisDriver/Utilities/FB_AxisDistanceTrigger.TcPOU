@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="FB_AxisDistanceTrigger" Id="{cf9870d0-7984-4e4e-bd9b-00146609a721}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_AxisDistanceTrigger
+VAR_INPUT
+	/// reset FB
+	bReset: BOOL;
+	/// actual position
+	fActualPos: LREAL;
+	/// trigger distance
+	fTriggerDistance: LREAL;
+END_VAR
+VAR_OUTPUT
+	/// trigger output
+	Q: BOOL;
+END_VAR
+VAR
+	/// distance
+	fDistance: LREAL;
+	/// actual ABS position
+	fActualAbsPos: LREAL;
+	/// mirror ABS position
+	fMirrorAbsPos: LREAL;
+	bInit: BOOL;
+END_VAR
+VAR CONSTANT
+	fEpsilon: LREAL := 0.01;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fActualAbsPos:=ABS(fActualPos);
+
+IF bReset OR NOT bInit THEN
+	bInit:=TRUE;
+	Q:=FALSE;
+	fMirrorAbsPos:=fActualAbsPos;
+	IF bReset THEN	
+		fDistance:=0;
+	END_IF
+
+END_IF
+
+IF fTriggerDistance <= 0 THEN
+	Q:=FALSE;
+	RETURN;
+END_IF
+
+IF ABS(fActualAbsPos - fMirrorAbsPos) > fEpsilon THEN
+	fDistance:=fDistance + ABS(fActualAbsPos - fMirrorAbsPos);
+	fMirrorAbsPos:=fActualAbsPos;
+END_IF
+
+Q:=fDistance>=fTriggerDistance;]]></ST>
+    </Implementation>
+    <LineIds Name="FB_AxisDistanceTrigger">
+      <LineId Id="3" Count="21" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

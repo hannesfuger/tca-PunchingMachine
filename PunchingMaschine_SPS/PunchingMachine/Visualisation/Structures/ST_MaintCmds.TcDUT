@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_MaintCmds" Id="{e65a5fd7-42b9-48a0-a703-d1f3cb40ecd3}">
+    <Declaration><![CDATA[TYPE ST_MaintCmds :
+STRUCT
+	bJogXFw				: BOOL;
+	bJogXBw				: BOOL;
+                    	
+	bJogYFw				: BOOL;
+	bJogYBw				: BOOL;
+		
+	bJogPunchFw			: BOOL;
+	bJogPunchBw			: BOOL;
+	
+	bJogOutletBelt		: BOOL;
+
+	bMovePunchBDC		: BOOL;
+	bMovePunchTDC		: BOOL;
+	bMoveXYMaint		: BOOL;
+	bMoveXYMaintAlt		: BOOL;
+	
+	bLoadConfig			: BOOL;
+	
+	bReset				: BOOL;
+	bSetZero			: BOOL;
+	
+	bChangeTool			: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="CheckRangeUnsigned" Id="{b97f6fca-36da-40f4-b07d-fbda6753de3d}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Implicitly generated code : DO NOT EDIT
+/// Checks subrange value. If value is outside [lower,upper], it is set to the closer bound and reports the error.
+{attribute 'check_range_unsigned' := ''}
+{attribute 'no_check' := ''}
+FUNCTION CheckRangeUnsigned : UDINT
+VAR_INPUT
+	value: UDINT;
+	lower: UDINT;
+	upper: UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// align to bounds 
+CheckRangeUnsigned := MIN(upper, MAX(lower, value));
+
+// if value changed, report error
+IF CheckRangeUnsigned <> value THEN
+	GVL_Supervision.aCodeErr[eCodeError_rangeUnsigned] := TRUE;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="CheckRangeUnsigned">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

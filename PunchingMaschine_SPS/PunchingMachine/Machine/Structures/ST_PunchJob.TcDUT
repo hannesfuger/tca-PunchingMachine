@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_PunchJob" Id="{5f767c85-95c9-4a25-80e4-527ac2f5660e}">
+    <Declaration><![CDATA[TYPE ST_PunchJob :
+STRUCT             	
+	Tool_1							: STRING;
+	Tool_2							: STRING;
+	ToolHolder_1					: STRING;
+	ToolHolder_2					: STRING;		
+	stMatOffset						: ST_Coordinate;
+	
+	astRunTodo						: ARRAY[0..MATRUNS_COUNT] OF INT;
+	abMultipleMats					: ARRAY[0..MATS_COUNT] OF BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

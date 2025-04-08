@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_PunchInfo" Id="{23302f34-e828-4cf7-98f5-79c8ac65a6c1}">
+    <Declaration><![CDATA[TYPE ST_PunchInfo :
+STRUCT
+	sCleartext				: STRING;
+	
+	nCurRun					: UINT;
+	nCurPunch				: UDINT;
+	nCurMat					: UINT;
+	
+	nMaxPunches				: UDINT;
+	
+	nCountRemainHolesOfJob	: UDINT;
+	nCountAllHolesOfJob		: UDINT;
+	nRemainTimeOfJob		: UDINT;
+	
+	stCoordinate			: ST_Coordinate;	
+	bResumeAllowed			: BOOL;
+	bPunching				: BOOL;
+	eJobState				: E_JobState;
+	
+	fOverride				: LREAL;
+	fPunchspeed				: LREAL;
+	
+	bLocked					: BOOL;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_MatRun" Id="{04298145-fe63-40f8-9bc8-ac0c2b03619e}">
+    <Declaration><![CDATA[TYPE ST_MatRun :
+STRUCT
+	bActive						: BOOL;
+	// Info
+	sMatRunNr					: UINT;	
+	sMatRunName					: STRING;
+	sNotice						: T_MAXSTRING;
+
+	// Punching Parameters
+	fMoveOverride				: INT := 100;
+	fPunchOverride				: INT := 100;
+
+	fThresholdX					: LREAL := -1;
+	fThresholdY					: LREAL := -1;
+	
+	bOutletbelt					: BOOL := TRUE;
+	nOutletbeltIntervall		: UINT := 120;
+	                    	
+	// Toolconfiguration
+	stTool						: ST_Tool;	
+	stToolHolder				: ST_ToolHolder;
+	
+	// Holes
+	astElements					: ARRAY[0..MATELEMENTS_COUNT] OF ST_Element;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisMoveAbsParameter" Id="{e1362525-dad6-4fc8-9a9e-ee2ae757f33e}">
+    <Declaration><![CDATA[/// Axis move absolute parameter strucure
+TYPE ST_AxisMoveAbsParameter EXTENDS ST_AxisMoveParameter :
+STRUCT
+	fPosition: LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

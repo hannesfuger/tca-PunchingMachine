@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <Itf Name="ITF_TaskAllocation" Id="{68b780d1-bd30-481c-b84c-a2476551ddbd}">
+    <Declaration><![CDATA[INTERFACE ITF_TaskAllocation
+]]></Declaration>
+    <Method Name="Invoke" Id="{d1e24f08-e42d-4606-87bd-13c61275799a}">
+      <Declaration><![CDATA[METHOD Invoke
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="Task" Id="{1abf0074-5672-460a-898b-904f839e1bb5}">
+      <Declaration><![CDATA[PROPERTY Task : E_Task]]></Declaration>
+      <Get Name="Get" Id="{a7086290-0635-4e73-8ee4-a51b8d25bc93}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{cad807d8-0700-4768-9055-77ae9f35ec82}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="TaskId" Id="{0ccf2a85-ca5a-440e-b527-3ac6027bb270}">
+      <Declaration><![CDATA[PROPERTY TaskId : Int]]></Declaration>
+      <Get Name="Get" Id="{fa83aced-722a-4d9f-a630-32b235f2685c}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{601e229b-8097-4be9-85b9-4fed0194d03b}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+  </Itf>
+</TcPlcObject>

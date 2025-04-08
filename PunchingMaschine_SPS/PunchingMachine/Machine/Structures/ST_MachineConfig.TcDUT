@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <DUT Name="ST_MachineConfig" Id="{17f312c7-dfda-4fb0-8fc5-f52aa0ae85bd}">
+    <Declaration><![CDATA[TYPE ST_MachineConfig :
+STRUCT
+	fSaftyDistanceToMat					: REAL;	
+	
+	stMaintPosition						: ST_Coordinate;
+	stMaintPositionAlt					: ST_Coordinate;
+	stMatOrigin							: ST_Coordinate;
+	
+	fMoveOutside						: LREAL;
+	fPassDistance						: LREAL;
+	
+	fVelocityX							: LREAL;
+	fAccelerationX						: LREAL;
+	
+	fVelocityY							: LREAL;
+	fAccelerationY						: LREAL;
+	
+	fVelocityPunch						: LREAL;
+	fAccelerationPunch					: LREAL;
+	
+	nPunchTorqueLimit					: INT;
+	nPunchTorqueLimitPos				: INT;
+	nPunchTorqueLimitNeg				: INT;
+	nXTorqueLimit						: INT;
+	nYTorqueLimit						: INT;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

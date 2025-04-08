@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisMoveModParameter" Id="{dbd9f8cd-637c-467a-8153-f95b8d91b62c}">
+    <Declaration><![CDATA[/// Axis move modulo parameter strucure
+TYPE ST_AxisMoveModParameter EXTENDS ST_AxisMoveParameter :
+STRUCT
+	fPosition: LREAL;
+	eDirection: MC_Direction;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

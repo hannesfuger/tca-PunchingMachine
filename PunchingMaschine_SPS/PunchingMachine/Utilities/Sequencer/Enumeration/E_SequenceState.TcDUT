@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_SequenceState" Id="{f501a5d3-3339-4909-8f50-738e2f109bd9}">
+    <Declaration><![CDATA[/// Auflistung aller Sequence-Stati
+TYPE E_SequenceState :
+(
+	/// Status nicht gesetzt
+	eSequenceState_none := 0,
+	/// Sequence läuft
+	eSequenceState_running,
+	/// Sequence wartet im Schritt
+	eSequenceState_waiting,
+	/// Sequence fertig/ok
+	eSequenceState_finished,
+	/// Sequence fehlgeschlagen
+	eSequenceState_error
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

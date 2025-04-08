@@ -1,0 +1,416 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="FB_ComponentBase" Id="{c18f24bd-a664-4b00-87c6-35388a9e2c13}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Abstract base FB for components
+{attribute 'enable_dynamic_creation' := ''}
+{attribute 'reflection' := ''}
+FUNCTION_BLOCK FB_ComponentBase IMPLEMENTS ITFComponent
+VAR
+	/// Unique ID of this instance (cam be used as index: P_ComponentPool.aComponents[iID]...)
+	iId				: INT := -1;
+	/// component active flag
+	bActive			: BOOL;
+	/// component state
+	eState			: E_ComponentState;
+	/// clear text info
+	sClearText		: T_MaxString;
+	/// last error debug info
+	sLastError		: T_MaxString;	
+	/// component type
+	eTyp			: E_ComponentType;
+	/// EventLog reference
+	fbEventLog		: REFERENCE TO FB_EventLog;
+	/// Last Event
+	stLastEvent		: ST_Event;
+	ptLastEvent		: POINTER TO ST_Event;
+	
+	
+	/// Bereich
+	eMachineArea	: E_MachineArea;
+	/// component name
+	sName			: STRING;
+	/// BMK name
+	sBMK			: STRING;
+	/// path of this FB (e.g. for log: P_ComponentPool.fbVirtualMaster)
+	{attribute 'no_init' := ''}
+	{attribute 'instance-path' := ''}
+	sPath			: STRING;	
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[///
+/// Abstract base FB for components
+/// TP/www.rmth.at/11.2014
+/// 
+]]></ST>
+    </Implementation>
+    <Folder Name="Properties" Id="{2d8306c8-917b-4b20-9aa7-5415be6cad83}" />
+    <Folder Name="Utilities" Id="{18cd2ad0-5a5a-4e5f-92e4-b0238b542ab5}" />
+    <Property Name="Active" Id="{ad08f73b-d076-4ffc-a47f-109b9002f3f0}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's or set's a value indicating whether this component is active or not.
+PROPERTY Active : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{8dd8e62e-65cf-4eae-a985-79199664088e}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Active := bActive;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{1d543709-b1d6-4f2d-af6c-97246f4599c2}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bActive := Active;
+sClearText := SEL(bActive, 'INACTIVE!', 'ACTIVE!');]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="BMK" Id="{3e8ee465-5189-4f2f-9d15-0d6a660f5497}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY BMK : STRING
+]]></Declaration>
+      <Get Name="Get" Id="{01c92174-19fd-4b80-81d2-175c5750d2bc}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[BMK := sBMK;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{b8ef3cfc-b534-4fcd-97bc-b47816b7b27a}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[sBMK := BMK;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ClearText" Id="{56ead6a6-eff4-4858-8e9e-da8349489d0c}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's value representing the component state.
+PROPERTY ClearText : String
+]]></Declaration>
+      <Get Name="Get" Id="{1fa5bb79-05f3-4363-a22b-26790775d81b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ClearText := sClearText;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ID" Id="{7adf225e-7442-4f77-874e-8de91565912f}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Unique component ID (cam be used as index: P_ComponentPool.aComponents[eID]...)
+PROPERTY ID : INT
+]]></Declaration>
+      <Get Name="Get" Id="{ddac6993-c733-47b1-a445-f075002f8c38}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ID := iId;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{9987bba1-8297-46ec-8910-10e8ca7a5cd6}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[iID := Id;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="LastError" Id="{06cb7fc4-a4a0-4ce5-a61e-ff39359d5455}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's value representing the component state.
+PROPERTY LastError : String
+]]></Declaration>
+      <Get Name="Get" Id="{fbc8f7e9-e26a-44c8-a99b-ddf89c43d61b}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[LastError := sLastError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MachineArea" Id="{5002829a-7be9-4fd2-bdb1-4f471524ec33}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY MachineArea : E_MachineArea]]></Declaration>
+      <Get Name="Get" Id="{b1107982-d402-48e8-82e1-34f3ffa3cd58}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MachineArea := eMachineArea;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{3ad4b5e6-3b5e-468e-b88a-52a5ed7a2777}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[eMachineArea := MachineArea;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Name" Id="{97507556-cbd6-4656-a4b4-7ef03ea2ff1e}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Name : STRING
+]]></Declaration>
+      <Get Name="Get" Id="{5bc1be01-8584-43a7-b2c4-089d7b7d1290}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Name := sName;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{cdf272ad-e29a-4767-ad58-2d41f72fa33a}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[sName := Name;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Path" Id="{f15c3da9-69b6-42be-b750-91438e4fc191}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Path : String]]></Declaration>
+      <Get Name="Get" Id="{c3c5d9a1-7c3c-440f-abee-27056ac72a80}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Path := sPath;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{7800391a-478c-4265-bd45-1c25f898c8f4}">
+      <Declaration><![CDATA[/// Reset component logic
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// abstract base logic reset
+
+sLastError := sEmpty;
+MEMSET(ADR(stLastEvent), 0, SIZEOF(ST_EVENT));
+
+// default: set state to ready
+eState := E_ComponentState.eComponentState_ready;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{04530f9f-040a-4517-8bda-6e0d48f73e41}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// abstract base logic run
+
+// only rdy state may lead to run
+IF eState = E_ComponentState.eComponentState_ready THEN
+	eState := E_ComponentState.eComponentState_running;
+END_IF
+
+Run := eState;
+
+IF stLastEvent.ePriority < E_Priority.ePriority_fault AND eState = E_ComponentState.eComponentState_error THEN
+	WriteError(E_Event.eEvent_none, 'unbekannter Fehler');
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetEventLogReference" Id="{452527ba-597e-4211-8fa1-0bbb9e3c7ffb}">
+      <Declaration><![CDATA[/// Set EventLog reference
+METHOD SetEventLogReference
+VAR_IN_OUT
+	/// HMI access provider.
+	fbEventLogRef	: FB_EventLog;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbEventLog REF= fbEventLogRef;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="State" Id="{d68fb6ae-0af8-44c3-bb4d-32b1388481b9}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's value representing the component state.
+PROPERTY State : E_ComponentState
+]]></Declaration>
+      <Get Name="Get" Id="{b4088dcc-e43a-4064-b0df-93c47386d3d2}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[State := eState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="StateAsString" Id="{bffb55f1-1ef3-4369-ab66-e92ce785efbd}" FolderPath="Properties\">
+      <Declaration><![CDATA[/// Get's value representing the component state.
+PROPERTY StateAsString : STRING
+]]></Declaration>
+      <Get Name="Get" Id="{3dd43a60-ec91-4906-860b-12629fae2ae4}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[CASE eState OF
+
+	eComponentState_none :
+		StateAsString := 'undefiniert';
+	/// Component is resetting
+	eComponentState_resetting:
+		StateAsString := 'wird zurückgesetzt';
+	/// Component is ready
+	eComponentState_ready:
+		StateAsString := 'ist bereit';
+	/// Component is running
+	eComponentState_running:
+		StateAsString := 'wird ausgeführt';
+	/// Component has error
+	eComponentState_error:
+		StateAsString := 'ist fehlerhaft';
+
+END_CASE]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Typ" Id="{987dd2cf-7ace-4cc4-856e-8b41f907e2c3}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY Typ : E_ComponentType]]></Declaration>
+      <Get Name="Get" Id="{9fd10945-acfb-45ad-818f-6e98f300ba25}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Typ := eTyp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="WriteError" Id="{a92622fe-49fc-4553-8379-a99997764084}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteError
+VAR_INPUT
+	Event			: E_Event;
+	Description 	: T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[WriteEvent(ePriority_fault, Event, Description, TRUE);
+//eState := E_ComponentState.eComponentState_error;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteEvent" Id="{583be540-6251-46c4-8656-e5b754778d2f}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteEvent
+VAR_INPUT
+	Priority		: E_Priority;
+	Event			: E_Event;
+	Description 	: T_MaxString;
+	Signalize			: BOOL;
+END_VAR
+VAR
+	tmpItem: ST_Event;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// chk
+IF NOT __ISVALIDREF(fbEventLog) THEN
+	RETURN;
+END_IF
+
+tmpItem.eComponent := eTyp;
+tmpItem.eEventID := Event;
+tmpItem.eMachineArea := eMachineArea;
+tmpItem.ePriority := Priority;
+tmpItem.nComponentID := iId;
+tmpItem.sDescription := Description;
+tmpItem.bSignalize := Signalize;
+
+IF 	ptLastEvent <> 0 AND_THEN
+	ptLastEvent^.bIsRaised AND_THEN
+   	tmpItem.eEventID = ptLastEvent^.eEventID AND_THEN
+	tmpItem.sDescription = ptLastEvent^.sDescription AND_THEN 
+	tmpItem.ePriority = ptLastEvent^.ePriority THEN 
+	RETURN;
+END_IF
+
+ptLastEvent := fbEventLog.SetEvent(tmpItem);
+stLastEvent := tmpItem;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteInfo" Id="{c2be943a-77e2-432b-be2b-8003842ed1ca}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteInfo
+VAR_INPUT
+	Event			: E_Event;
+	Description 	: T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[WriteEvent(ePriority_info, Event, Description, FALSE);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="WriteWarning" Id="{05cae7cb-6c8d-4876-827e-346c099d6a8b}" FolderPath="Utilities\">
+      <Declaration><![CDATA[METHOD WriteWarning
+VAR_INPUT
+	Event			: E_Event;
+	Description 	: T_MaxString;
+	Signal			: BOOL;
+END_VAR
+VAR
+	tmpItem			: ST_Event;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[WriteEvent(ePriority_warning, Event, Description, Signal);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_ComponentBase">
+      <LineId Id="3" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Active.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Active.Set">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.BMK.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.BMK.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.ClearText.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.ID.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.ID.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.LastError.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.MachineArea.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.MachineArea.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Name.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Name.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Path.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Reset">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Run">
+      <LineId Id="3" Count="10" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.SetEventLogReference">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.State.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.StateAsString.Get">
+      <LineId Id="3" Count="16" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.Typ.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.WriteError">
+      <LineId Id="3" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.WriteEvent">
+      <LineId Id="3" Count="11" />
+      <LineId Id="31" Count="10" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.WriteInfo">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ComponentBase.WriteWarning">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

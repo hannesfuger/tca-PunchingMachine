@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_DigitalOutputOUT" Id="{8a88969d-7ffc-4714-8a33-70c8239c0587}">
+    <Declaration><![CDATA[TYPE ST_DigitalOutputOUT :
+STRUCT
+	bOutput			: BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="F_TargetWindowReached" Id="{293b00b7-c73e-4ece-9e85-9140e5ea5bc9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_TargetWindowReached : BOOL
+VAR_INPUT
+	fCurrentPos: LREAL;
+	fTargetPos: LREAL;
+	fWindow: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+F_TargetWindowReached := fCurrentPos >= (fTargetPos - fWindow) AND fCurrentPos <= (fTargetPos + fWindow);
+]]></ST>
+    </Implementation>
+    <LineIds Name="F_TargetWindowReached">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

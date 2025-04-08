@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_Event" Id="{b497e8fb-8161-4cb7-a553-24fcb3312d8f}">
+    <Declaration><![CDATA[/// enumeration of all possible notifications
+TYPE E_Event :
+(
+	/// notification not set
+	eEvent_none := 0,
+	/// - code errors -
+	/// code error (e.g.: check bounds, check div, ...) -> additional info (error details/index/location) in dynamic content var
+	eEvent_codeError := 1,
+	/// - system errors -
+	/// system error (e.g.: (re)started, cycletime exceeded, ...) -> additional info (index/location) in dynamic content var
+	eEvent_systemError := 2,
+	/// - HW errors -
+	/// hardware error -> additional info (error details/index/location) in dynamic content var
+	eEvent_hardwareError := 3,
+	/// hardware warning -> additional info (error details/index/location) in dynamic content var
+	eEvent_hardwareWarning := 4,
+	/// EtherCAT Master Fehler
+	eEvent_EcMasterError := 5,
+	/// EtherCAT Slave Fehler
+	eEvent_EcSlaveError := 6,
+
+	// - Safety system errors -
+	/// safety error -> additional info (error details/index/location) in dynamic content var
+	eEvent_safetyError := 7,
+	
+	// - Unit Test Meldungen
+	v_unitTest := 8,
+	
+	// bis 09
+	
+	// Cabinet errors
+	/// Feld01 - xxx
+	eEvent_Cabinet01 := 10,
+	/// Feld02 - xxx
+	eEvent_Cabinet02 := 11,
+	/// Feld03 - xxx
+	eEvent_Cabinet03 := 12,
+	
+	
+	
+	// bis 40
+	
+	// 40 -> Transfer System
+	eEvent_transferSystemError := 40,
+	
+	// 50 -> Safety Fehler Schutztüre, Not-Halt, ...
+	eEvent_safetyNotHalt := 50,
+	eEvent_safetyArea_Machine := 51,
+	eEvent_safetyArea_Robo1 := 52,
+	eEvent_safetyArea_SAA := 53,
+	eEvent_safetyArea_Robo2 := 54,
+	eEvent_safetyArea_PA := 55,
+	
+	// bis 70
+	
+	/// Allgemein
+	eEvent_generalInf := 100,
+	eEvent_generalWarn := 101,
+	eEvent_generalErr := 102,
+	
+	/// Processmodule 
+	eEvent_handPmInf := 107, 
+	eEvent_handPmWarn := 108, 
+	eEvent_handPmErr := 109,
+	
+	eEvent_bestueckungPmInf := 110,
+	eEvent_bestueckungPmWarn := 111,
+	eEvent_bestueckungPmErr := 112,
+	
+	eEvent_laserPmInf := 113,
+	eEvent_laserPmWarn := 114,
+	eEvent_laserPmErr := 115,
+	
+	eEvent_kleberPmInf := 116,
+	eEvent_kleberPmWarn := 117,
+	eEvent_kleberPmErr := 118,
+	
+	eEvent_haftvermittlerPmInf := 119,
+	eEvent_haftvermittlerPmWarn := 120,
+	eEvent_haftvermittlerPmErr := 121,
+	
+	// 02 - xx
+	eEvent_Lifting_01 := 200,
+	eEvent_Telescop_01 := 201,
+	eEvent_02_x01_Transf_fbZylGrf := 202,
+	eEvent_02_x01_Station := 203,
+		
+	
+	eEvent_InvalidCmd := 999,
+	
+	/// has to be set to last index for array bounds!
+	eEvent_Max := 1000
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

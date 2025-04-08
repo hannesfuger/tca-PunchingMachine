@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisGeneralParameter" Id="{e41971f2-6808-4e6d-bd6b-e228eeb4de3a}">
+    <Declaration><![CDATA[/// General axis parameter set
+TYPE ST_AxisGeneralParameter :
+STRUCT
+	/// Auto power off axis (economize)
+	bEnableAutoPowerOff: BOOL := FALSE;
+	/// Delay time until power off idle axis
+	tAutoPowerOffDelay: TIME := TIME#10s0ms;
+	/// Threshold temperature [1/10 °C] for external fan.
+	iExtFanThreshold: INT := 500;
+	/// Factor for torque value
+	fTorqueFactor: REAL := 0.1;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

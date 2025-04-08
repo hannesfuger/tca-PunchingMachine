@@ -1,0 +1,9 @@
+﻿@font-face {        
+    font-family: RobotoCondensed; 
+    src: url(Roboto-Condensed-webfont.woff); 
+} 
+
+html, body {
+    font-family:RobotoCondensed;
+     font-size: 12px;
+}

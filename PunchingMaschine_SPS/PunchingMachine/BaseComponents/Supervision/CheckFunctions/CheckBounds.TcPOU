@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="CheckBounds" Id="{78c83943-6d9c-4d3b-944d-42aa3c0016a6}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Implicitly generated code : DO NOT EDIT!!!
+/// CheckBounds is used to check for range overflows
+{attribute 'check_bounds' := ''}
+{attribute 'no_check' := ''}
+FUNCTION CheckBounds : DINT
+VAR_INPUT
+	index: DINT;
+	lower: DINT;
+	upper: DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// align bounds 
+CheckBounds := MIN(upper, MAX(lower, index));
+
+// if index changed, report error
+IF CheckBounds <> index THEN
+	GVL_Supervision.aCodeErr[eCodeError_bounds] := TRUE;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="CheckBounds">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

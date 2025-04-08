@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <Itf Name="ITFMotionComponent" Id="{bb7bd53d-42f9-4f25-9571-3bb44b7addd0}">
+    <Declaration><![CDATA[INTERFACE ITFMotionComponent EXTENDS ITFComponent
+]]></Declaration>
+    <Property Name="ActPos" Id="{2bf808db-5117-4e4a-8c7a-111b204dde8e}">
+      <Declaration><![CDATA[PROPERTY PUBLIC ActPos : LREAL]]></Declaration>
+      <Get Name="Get" Id="{dc74d271-8c4f-4147-8bbb-4da69159767e}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Axis" Id="{83af46a2-26aa-4ee0-8888-0f0b828e6980}">
+      <Declaration><![CDATA[/// Get's the axis reference
+PROPERTY Axis : AXIS_REF
+]]></Declaration>
+      <Get Name="Get" Id="{5a861104-27fd-4c4c-afad-b3a69b4529e5}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="AxisState" Id="{3a80577a-4b82-4913-828e-993b02c0cb94}">
+      <Declaration><![CDATA[/// Get`s the MC axis state.
+PROPERTY AxisState : ST_AxisStatus
+]]></Declaration>
+      <Get Name="Get" Id="{39909282-b870-47d3-8f70-b0b467dc414d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="Enable" Id="{0baf5e9b-fe69-46b5-b9bd-19cd4aa97a03}">
+      <Declaration><![CDATA[PROPERTY Enable : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{c0c90b16-db7e-49db-bb05-5c0c5b54eb68}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{af9deda9-64f1-428a-9371-2650954c6af7}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="EnableNeg" Id="{2891239a-1e7c-455d-a8bd-9e964360c11f}">
+      <Declaration><![CDATA[PROPERTY EnableNeg : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{e4a9c69a-ff4f-4cdd-8fa8-65a5edbf4339}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{ba47bbe4-9b76-48c5-b76d-0f2a211f389f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="EnablePos" Id="{a99d2778-a351-4de5-9d73-14f15af4c527}">
+      <Declaration><![CDATA[PROPERTY EnablePos : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{e5fbba95-7b66-4aac-9995-5fb483c413c7}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{b243f9c4-585a-4e98-b524-e60395950991}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="Halt" Id="{4cf160a0-07c7-4f52-8ef9-227fcac84234}">
+      <Declaration><![CDATA[/// Axis halt using default parameter
+{attribute 'object_name' := 'Halt'}
+METHOD Halt : E_OperationResult
+]]></Declaration>
+    </Method>
+    <Property Name="Override" Id="{60296192-a8fb-409b-a62d-c5f8227c4e69}">
+      <Declaration><![CDATA[PROPERTY Override : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{96d2275c-d5e7-4d0f-944f-7eff488fdccd}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{fb66b9fb-9852-458c-96a8-93b18b5666f0}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="Velocity" Id="{e6d76adf-1a1b-4570-8c76-514c1bcee0c1}">
+      <Declaration><![CDATA[PROPERTY Velocity : LREAL
+]]></Declaration>
+      <Get Name="Get" Id="{7792505a-c057-4dbb-935f-3b9675a59c39}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+  </Itf>
+</TcPlcObject>

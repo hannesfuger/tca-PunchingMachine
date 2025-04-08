@@ -1,0 +1,55 @@
+{
+  "function": {
+    "version": null,
+    "dependencies": [],
+    "name": "PasteValues",
+    "displayName": "PasteValues",
+    "visible": true,
+    "category": "",
+    "description": "",
+    "targetType": null,
+    "returnValue": {
+      "type": "tchmi:general#/definitions/Object",
+      "description": ""
+    },
+    "arguments": [
+      {
+        "name": "par1",
+        "displayName": "Parameter",
+        "type": "tchmi:general#/definitions/Object",
+        "category": "",
+        "description": "This is an important Parameter which does... This text is used in a tooltip.",
+        "defaultValue": "",
+        "required": true,
+        "bindable": true,
+        "restParameter": false,
+        "asReference": false
+      },
+      {
+        "name": "Index",
+        "displayName": "Index",
+        "type": "tchmi:general#/definitions/Number",
+        "category": "",
+        "description": "",
+        "defaultValue": "",
+        "required": true,
+        "bindable": true,
+        "restParameter": false,
+        "asReference": false
+      },
+      {
+        "name": "AllParamters",
+        "displayName": "AllParamters",
+        "type": "tchmi:general#/definitions/Array",
+        "category": "",
+        "description": "",
+        "defaultValue": "",
+        "required": true,
+        "bindable": true,
+        "restParameter": false,
+        "asReference": false
+      }
+    ]
+  },
+  "$schema": "../../../Packages/Beckhoff.TwinCAT.HMI.Framework.14.2.110/runtimes/native1.12-tchmi/Schema/FunctionDescription.Schema.json"
+}

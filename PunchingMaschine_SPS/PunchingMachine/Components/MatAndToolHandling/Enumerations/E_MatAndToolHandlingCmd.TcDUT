@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_MatAndToolHandlingCmd" Id="{592fa7de-123b-4841-b8f6-a798b7f74660}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_MatAndToolHandlingCmd :
+(
+	cmdNone 		:= 0,
+	cmdMoveAbs 		:= 1,
+	cmdHalt 		:= 2,
+	cmdJog      	:= 3,
+	cmdHomeing  	:= 4,
+	cmdChangeTool   := 5
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

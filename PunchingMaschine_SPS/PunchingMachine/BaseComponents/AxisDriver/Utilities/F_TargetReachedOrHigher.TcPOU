@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="F_TargetReachedOrHigher" Id="{714a5ff3-321b-4b6c-8dd8-7ffb4626df7c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_TargetReachedOrHigher : BOOL
+VAR_INPUT
+	fCurrentPos: LREAL;
+	fTargetPos: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+F_TargetReachedOrHigher := fCurrentPos >= (fTargetPos - fEpsilon);
+]]></ST>
+    </Implementation>
+    <LineIds Name="F_TargetReachedOrHigher">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

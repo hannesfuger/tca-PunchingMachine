@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="E_GearMode" Id="{aa1816ba-df28-4e85-a2c8-b7fdbaa6a002}">
+    <Declaration><![CDATA[/// Enumeration of possible axis gear modes.
+TYPE E_GearMode :
+(
+	/// Gear mode not set
+	eGearMode_none := 0,
+	/// Gear in
+	eGearMode_in,
+	/// Gear out
+	eGearMode_out
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

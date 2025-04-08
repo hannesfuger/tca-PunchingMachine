@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="E_EtherCATState" Id="{1c4c2abd-5e44-42d8-a57c-b36bb4f5c5b6}">
+    <Declaration><![CDATA[/// Enumeration of possible EtherCAT states.
+TYPE E_EtherCATState :
+(
+	/// Link error
+	eEtherCATState_LinkError := 1,
+	/// I/O locked after link error (I/O reset required)
+	eEtherCATState_IoLockedAfterLinkErr := 2,
+	/// Link error (redundancy adapter)
+	eEtherCATState_LinkErrRedAdapter := 4,
+	/// Missing one frame (redundancy mode)
+	eEtherCATState_MissingFrame := 8,
+	/// Out of send resources (I/O reset required)
+	eEtherCATState_OutOfSendResources := 10,
+	/// Watchdog triggered
+	eEtherCATState_WatchdogTriggered := 20,
+	/// Ethernet driver (miniport) not found
+	eEtherCATState_EthernetDrvNotFound := 40,
+	/// I/O reset active
+	eEtherCATState_IO_resetActive := 80,
+	/// At least one device in 'INIT' state
+	eEtherCATState_AtLeastOneDeviceInit := 100,
+	///  At least one device in 'PRE-OP' state
+	eEtherCATState_AtLeastOneDevicePreOp := 200,
+	/// At least one device in 'SAFE-OP' state
+	eEtherCATState_AtLeastOneDeviceSafeOp := 400,
+	/// At least one device indicates an error state
+	eEtherCATState_AtLeastOneDeviceError := 800,
+	/// DC not in sync
+	eEtherCATState_DC_notInSync := 1000
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

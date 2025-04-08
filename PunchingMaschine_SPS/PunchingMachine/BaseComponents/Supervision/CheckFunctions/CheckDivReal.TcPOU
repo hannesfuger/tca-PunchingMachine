@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <POU Name="CheckDivReal" Id="{e786fb56-4b1e-4276-b1e0-de740d9650ce}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Implicitly generated code : DO NOT EDIT
+/// Checks for division by 0, if divisor is 0, replace it with 1 and report error
+{attribute 'check_div_real32' := ''}
+{attribute 'no_check' := ''}
+FUNCTION CheckDivReal : REAL
+VAR_INPUT
+	divisor: REAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF divisor = 0 THEN
+	// replace divisor and report error if necessary
+	CheckDivReal := 1;
+	GVL_Supervision.aCodeErr[eCodeError_divReal] := TRUE;
+ELSE
+	CheckDivReal := divisor;
+END_IF;]]></ST>
+    </Implementation>
+    <LineIds Name="CheckDivReal">
+      <LineId Id="3" Count="5" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

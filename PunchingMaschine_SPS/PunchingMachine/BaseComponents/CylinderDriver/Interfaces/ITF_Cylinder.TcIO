@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <Itf Name="ITF_Cylinder" Id="{fcf2514d-30a6-4c84-882e-51343beed26a}">
+    <Declaration><![CDATA[INTERFACE ITF_Cylinder EXTENDS ITFComponent
+]]></Declaration>
+    <Property Name="ActualPosition" Id="{3b8a7e8e-5976-4dcd-99af-741d4237ebfc}">
+      <Declaration><![CDATA[PROPERTY PUBLIC ActualPosition : E_CylinderPosition]]></Declaration>
+      <Get Name="Get" Id="{4028be31-fb07-4cb2-aaea-7ea04068a7a4}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="EnableHp" Id="{cbda6ac3-2ad1-4660-a6bc-d5f9e1102fbe}">
+      <Declaration><![CDATA[PROPERTY PUBLIC EnableHp : BOOL]]></Declaration>
+      <Get Name="Get" Id="{317fbccb-5924-4b47-a44b-ea0c9a6af556}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{763ed68a-8eb5-45ee-8c09-b5bc9516c89a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="EnableWp" Id="{724879d6-1b8e-4b09-8eac-faef6db8c1e2}">
+      <Declaration><![CDATA[PROPERTY PUBLIC EnableWp : BOOL]]></Declaration>
+      <Get Name="Get" Id="{8244e3f3-1d2f-4306-abe9-4bdc5a5097e1}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{3ea0b8c6-6f1f-4b48-b204-c886cc957188}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="ImpulseTime" Id="{d2339521-30af-4f74-a1ee-7dcedc5ce5fc}">
+      <Declaration><![CDATA[// Ansteuerzeit für Impulsventile (0 deaktiviert die Impulssteuerung)
+PROPERTY PUBLIC ImpulseTime : TIME]]></Declaration>
+      <Get Name="Get" Id="{22abe987-1542-4080-9148-8e434b20327a}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{cea9d77f-70d9-40df-a327-91528b8959ca}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="PositionValidationTime" Id="{865124d6-cbfc-4459-b97c-b85995412c3e}">
+      <Declaration><![CDATA[/// Verweilzeit bis die jeweilige Endlage bestätigt wird.
+PROPERTY PUBLIC PositionValidationTime : TIME]]></Declaration>
+      <Get Name="Get" Id="{44ef34c5-72ef-4659-b0c5-e2f8d50ffbf9}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{922e91ed-563d-404c-812e-443af52623d4}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="ResetValves" Id="{ccb69fa8-fc6d-48d3-a812-e232079381b3}">
+      <Declaration><![CDATA[METHOD PUBLIC ResetValves
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="SafetyOk" Id="{bf134dfd-6df4-421d-b97c-b4fa4255137b}">
+      <Declaration><![CDATA[PROPERTY PUBLIC SafetyOk : BOOL]]></Declaration>
+      <Get Name="Get" Id="{31862cd8-367b-4e35-8057-bef355b6105d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{f909750a-b0d9-4706-891c-5e0dd86c9f92}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Property Name="SensorHp" Id="{cb801c0c-1d6a-4a5d-9729-489abc0ff655}">
+      <Declaration><![CDATA[PROPERTY PUBLIC SensorHp : BOOL]]></Declaration>
+      <Get Name="Get" Id="{22ce4b02-dc3f-416d-b200-e01640630320}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="SensorWp" Id="{c349fde6-539b-4a67-8b9f-06acf754ce9a}">
+      <Declaration><![CDATA[PROPERTY PUBLIC SensorWp : BOOL]]></Declaration>
+      <Get Name="Get" Id="{e1d2d008-db49-4467-8886-8d8358e9b05b}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="SupervisionTime" Id="{bbdc9245-b62b-4f7b-ab4b-d5f0356a8b12}">
+      <Declaration><![CDATA[/// Verweilzeit nach Ventilansteuerung, bis die Zylinderendlage geprüft wird (0 deaktiviert die Überwachung)
+PROPERTY PUBLIC SupervisionTime : TIME]]></Declaration>
+      <Get Name="Get" Id="{63443591-9adb-401c-8fe3-9f5071f1686d}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+      <Set Name="Set" Id="{a86e091f-ab4f-44a4-b290-7dc66c82e972}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Set>
+    </Property>
+    <Method Name="ToHP" Id="{7c6f9d40-b8e8-42da-95a7-7740ad17ea29}">
+      <Declaration><![CDATA[METHOD PUBLIC ToHP
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ToWP" Id="{816616ec-8229-49ad-a7c9-b37bcc2b97b8}">
+      <Declaration><![CDATA[METHOD PUBLIC ToWP
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

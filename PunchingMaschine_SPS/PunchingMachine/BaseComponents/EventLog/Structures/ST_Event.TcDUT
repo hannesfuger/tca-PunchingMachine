@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.7">
+  <DUT Name="ST_Event" Id="{ff39c85d-5c87-4bc5-84de-330d6e07205e}">
+    <Declaration><![CDATA[/// Event structure
+TYPE ST_Event :
+STRUCT
+	/// INDEX in global event-Array
+	nIdx				: INT;
+	/// priority of the event
+	ePriority			: E_Priority;
+	/// ident code of the component
+	nComponentID		: INT;
+	/// ident code of the event
+	eEventID			: E_Event;
+	/// signalize
+	bSignalize			: BOOL;
+	/// machine area information
+	eMachineArea		: E_MachineArea;
+	/// Component information
+	eComponent			: E_ComponentType;
+	/// dynamic content info string
+	sDescription		: T_MaxString;
+	/// is active flag of the notification
+	bIsRaised			: BOOL;
+	/// raise timestamp of the notification
+	dtRaiseTime			: DT;
+	/// quit timestamp of the notification
+	dtQuitTime			: DT;	
+	/// raise timestamp of the notification in string format
+	sRaiseTime			: STRING(22);
+	/// quit timestamp of the notification in string format
+	sQuitTime			: STRING(22);
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.9">
+  <DUT Name="ST_AxisIO" Id="{a85fc1c9-f0ec-44e2-a358-cbabd4c1de90}">
+    <Declaration><![CDATA[/// Additional axis IO (direct linked) for AX5xxx axis.
+TYPE ST_AxisIO :
+STRUCT
+	stIn AT %I*: ST_AxisIn;
+	stOut AT %Q*: ST_AxisOut;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

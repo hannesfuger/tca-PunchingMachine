@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="FB_Safety" Id="{d015815c-e708-4570-b138-f8d107997a76}" SpecialFunc="None">
+    <Declaration><![CDATA[/// Function block for TwinSAFE communication.
+FUNCTION_BLOCK FB_Safety EXTENDS FB_ComponentBase
+VAR_OUTPUT	
+	/// Quittieren Safety erforderlich	
+	bSafetyQuittRequest		:BOOL;
+	
+	/// Not-Halt Status OK
+	bNotHaltOk				:BOOL;
+END_VAR
+VAR
+	/// IO reference
+	stIn					: REFERENCE TO ST_SafetyIn;
+	stOut					: REFERENCE TO ST_SafetyOut;
+	/// private var's
+	nStep					: INT;
+	tonDelay				: TON;
+	
+	bSafetyOK				: BOOL;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+]]></ST>
+    </Implementation>
+    <Method Name="FB_init" Id="{b6e1b4e4-b4d3-4607-9118-59abe3af0f55}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eTyp := E_ComponentType.eComponentType_Safety;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reset" Id="{44aa5148-0a84-40af-b736-621a43a03ccb}">
+      <Declaration><![CDATA[/// resets TwinSAFE
+{attribute 'object_name' := 'Reset'}
+METHOD Reset
+VAR
+	ii: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+SUPER^.Reset();
+
+tonDelay(IN := FALSE);
+eState := E_ComponentState.eComponentState_resetting;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{3da8a499-d92c-47d8-b343-068410d4b686}">
+      <Declaration><![CDATA[/// Run component logic
+{attribute 'object_name' := 'Run'}
+METHOD Run : E_ComponentState
+VAR
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// base logic run
+Run := SUPER^.Run();
+
+IF NOT __ISVALIDREF(stIn) OR NOT __ISVALIDREF(stOut) THEN
+	RETURN;
+END_IF
+
+stOut.bSAFE_NotHalt_Ok := stIn.bSAFE_NotHalt_Ok;
+stOut.bRun_stop := TRUE;
+
+// Anforderung zum quittieren der Sicherheit				
+bSafetyQuittRequest := NOT stIn.bSAFE_NotHalt_Ok OR
+						stIn.bSAFE_CommErr OR
+						stIn.bSAFE_FbErr;
+
+bNotHaltOk := stIn.bSAFE_NotHalt_Ok;
+bSafetyOK := NOT stIn.bSAFE_CommErr AND NOT stIn.bSAFE_FbErr AND bNotHaltOk;
+
+CASE nStep OF
+	0: 	
+		sClearText := 'wait for reset command.';
+		IF stIn.bSAFE_CommErr THEN
+			WriteError(eEvent_safetyError, 'TwinSAFE COM Error');
+		ELSIF stIn.bSAFE_FbErr THEN
+			WriteError(eEvent_safetyError, 'TwinSAFE FB Error');
+		ELSIF NOT stIn.bSAFE_NotHalt_Ok THEN
+			WriteError(eEvent_safetyError, 'TwinSAFE Not-Halt');
+		END_IF		
+		
+		IF eState = E_ComponentState.eComponentState_resetting THEN  // -> in Reset() METHOD		
+			stOut.bErrAckSafety_General := TRUE;
+			nStep := 10;
+		END_IF		
+		
+	10:	
+		sClearText := 'Error ack TwinSAFE reset General';
+		tonDelay(IN := TRUE, PT := T#1S);
+		IF tonDelay.Q THEN
+			stOut.bErrAckSafety_General := FALSE;
+			tonDelay(IN := FALSE);
+			IF stIn.bSAFE_FbErr OR stIn.bSAFE_CommErr OR NOT stIn.bSAFE_NotHalt_Ok THEN // chk error still active
+				nStep := 0;
+			ELSE
+				stOut.bErrAckSafety_Drive := TRUE;
+				nStep := 20;
+			END_IF			
+		END_IF
+		
+	20:	
+		sClearText := 'Error ack TwinSAFE reset Drives';
+		tonDelay(IN := TRUE, PT := T#1S);
+		IF tonDelay.Q THEN
+			stOut.bErrAckSafety_Drive := FALSE;
+			tonDelay(IN := FALSE);
+			nStep := 100;
+		END_IF
+		
+	100:
+		sClearText := 'Reset TwinSAFE Done';
+		eState := E_ComponentState.eComponentState_running;
+		nStep := 0;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="SafetyOk" Id="{9e6d9138-8313-462f-aedb-cb270e593541}">
+      <Declaration><![CDATA[PROPERTY SafetyOk : BOOL]]></Declaration>
+      <Get Name="Get" Id="{0cbd5f60-8a5f-4c51-bae3-f0bef12c7b68}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[SafetyOK := bSafetyOK;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="SetReferences" Id="{62b86bc6-3747-45cf-b878-c8a070ed25ab}">
+      <Declaration><![CDATA[/// Dependency injection method.
+{attribute 'object_name' := 'SetReferences'}
+METHOD INTERNAL SetReferences
+VAR_IN_OUT
+	/// IO reference
+	stIORef: ST_SafetyIO;	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[/// set up references
+stIn REF= stIORef.stIn;
+stOut REF= stIORef.stOut;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Safety">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Safety.FB_init">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Safety.Reset">
+      <LineId Id="3" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Safety.Run">
+      <LineId Id="3" Count="1" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="71" Count="1" />
+      <LineId Id="5" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="7" Count="52" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Safety.SafetyOk.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Safety.SetReferences">
+      <LineId Id="3" Count="1" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
