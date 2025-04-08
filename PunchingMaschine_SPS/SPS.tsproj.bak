@@ -1765,7 +1765,7 @@ External Setpoint Generation:
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000001" IoAtBegin="true">
+				<SafTask Priority="4" CycleTime="20000" AmsPort="501" Affinity="#x00000001" IoAtBegin="true" AmsNetId="192.168.0.154.1.1">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -2393,7 +2393,7 @@ External Setpoint Generation:
 			</Project>
 		</Safety>
 		<Io>
-			<Device Id="2" DevType="111" DevFlags="#x0003" AmsPort="28674" AmsNetId="192.168.137.129.3.1" RemoteName="Device 2 (EtherCAT)" InfoImageId="3">
+			<Device Id="2" Disabled="true" DevType="111" DevFlags="#x0003" AmsPort="28674" AmsNetId="192.168.137.129.3.1" RemoteName="Device 2 (EtherCAT)" InfoImageId="3">
 				<Name>Device 2 (EtherCAT)</Name>
 				<AddressInfo>
 					<Pnp>
