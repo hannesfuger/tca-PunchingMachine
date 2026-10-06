@@ -12,7 +12,7 @@
     <Name>HMI</Name>
     <HmiCommunicationRouterPort>10154</HmiCommunicationRouterPort>
     <HmiCommunicationServerPort>3001</HmiCommunicationServerPort>
-    <HmiRecent>14.2.116.1</HmiRecent>
+    <HmiRecent>14.3.617.1</HmiRecent>
     <TargetFrameworkMoniker>native,Version=v1.12.0,Profile=tchmi</TargetFrameworkMoniker>
     <TargetFramework>native1.12-tchmi</TargetFramework>
     <HmiLogTcHmiServerMessages>false</HmiLogTcHmiServerMessages>
@@ -25,6 +25,7 @@
     <HmiServerNodeAdvancedView>False</HmiServerNodeAdvancedView>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <HmiCommunicationServerPublicPort>3443</HmiCommunicationServerPublicPort>
   </PropertyGroup>
   <PropertyGroup>
     <TwinCATHmi_Tasks>$(TcHmiDirectory)\MSBuild\Beckhoff.TwinCAT.HMI.tasks</TwinCATHmi_Tasks>

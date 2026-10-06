@@ -6,7 +6,7 @@
     <ProjectGuid>{134c947c-0af0-446a-9c02-07c005c76056}</ProjectGuid>
     <SubObjectsSortedByName>True</SubObjectsSortedByName>
     <Name>PunchingMachine</Name>
-    <ProgramVersion>3.1.4026.14</ProgramVersion>
+    <ProgramVersion>3.1.4026.20</ProgramVersion>
     <Application>{cb7cd36c-1a41-4565-9909-70ea77586422}</Application>
     <TypeSystem>{8ceeb386-0363-4d78-9405-56201cd4146a}</TypeSystem>
     <Implicit_Task_Info>{40aa4e2b-a29a-445b-b4fc-b91d9883bc22}</Implicit_Task_Info>
